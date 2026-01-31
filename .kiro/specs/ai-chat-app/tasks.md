@@ -241,13 +241,13 @@
   - 如有问题请询问用户
 
 - [ ] 14. 设置面板
-  - [-] 14.1 实现设置面板组件
+  - [x] 14.1 实现设置面板组件
     - 创建 `components/settings/SettingsPanel.tsx`
     - 实现设置面板模态框
     - 实现标签页切换（主题、提示词）
     - _Requirements: 11.1_
   
-  - [~] 14.2 实现主题设置组件
+  - [-] 14.2 实现主题设置组件
     - 创建 `components/settings/ThemeSettings.tsx`
     - 实现深色/浅色模式切换
     - 实现主题色选择

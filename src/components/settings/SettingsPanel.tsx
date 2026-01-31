@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Modal from '@/components/ui/Modal';
+import ThemeSettings from '@/components/settings/ThemeSettings';
 
 /**
  * Tab type for settings panel navigation
@@ -100,15 +101,7 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'theme':
-        return (
-          <div className="space-y-4">
-            {/* Placeholder for ThemeSettings component */}
-            <div className="p-4 rounded-lg bg-[var(--muted)] text-[var(--muted-foreground)] text-center">
-              <p className="text-sm">主题设置组件将在此处渲染</p>
-              <p className="text-xs mt-1 opacity-70">ThemeSettings component placeholder</p>
-            </div>
-          </div>
-        );
+        return <ThemeSettings />;
       case 'prompts':
         return (
           <div className="space-y-4">
