@@ -1,71 +1,25 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { useChatStore, useTheme } from '@/store';
-import type { ThemeConfig } from '@/types';
+import React from 'react';
+import { useTheme, PRESET_COLORS } from '@/hooks/useTheme';
+import type { FontSize } from '@/types';
 
 /**
- * Preset theme colors for the application
+ * Extended preset colors with gradient for display
  */
-const PRESET_COLORS = [
-  { id: 'purple', name: '紫色', value: '#667eea', gradient: 'linear-gradient(135deg, #667eea, #764ba2)' },
-  { id: 'blue', name: '蓝色', value: '#3b82f6', gradient: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' },
-  { id: 'green', name: '绿色', value: '#10b981', gradient: 'linear-gradient(135deg, #10b981, #059669)' },
-  { id: 'orange', name: '橙色', value: '#f97316', gradient: 'linear-gradient(135deg, #f97316, #ea580c)' },
-  { id: 'pink', name: '粉色', value: '#ec4899', gradient: 'linear-gradient(135deg, #ec4899, #db2777)' },
-  { id: 'cyan', name: '青色', value: '#06b6d4', gradient: 'linear-gradient(135deg, #06b6d4, #0891b2)' },
-];
+const DISPLAY_COLORS = PRESET_COLORS.map(color => ({
+  ...color,
+  gradient: `linear-gradient(135deg, ${color.value}, ${color.gradientEnd})`,
+}));
 
 /**
  * Font size options
  */
-const FONT_SIZES: { id: ThemeConfig['fontSize']; name: string; description: string }[] = [
+const FONT_SIZES: { id: FontSize; name: string; description: string }[] = [
   { id: 'small', name: '小', description: '14px' },
   { id: 'medium', name: '中', description: '16px' },
   { id: 'large', name: '大', description: '18px' },
 ];
-
-/**
- * Apply theme to document
- * Updates CSS variables and class names based on theme configuration
- */
-function applyTheme(theme: ThemeConfig) {
-  const root = document.documentElement;
-  
-  // Apply dark/light mode
-  if (theme.mode === 'dark') {
-    root.classList.add('dark');
-    root.classList.remove('light');
-  } else {
-    root.classList.add('light');
-    root.classList.remove('dark');
-  }
-  
-  // Apply primary color
-  const selectedColor = PRESET_COLORS.find(c => c.value === theme.primaryColor);
-  if (selectedColor) {
-    root.style.setProperty('--primary', selectedColor.value);
-    root.style.setProperty('--gradient-start', selectedColor.value);
-    // Calculate gradient end color (darker shade)
-    const gradientEnd = selectedColor.gradient.match(/#[a-fA-F0-9]{6}$/)?.[0] || selectedColor.value;
-    root.style.setProperty('--gradient-end', gradientEnd);
-    root.style.setProperty('--ring', selectedColor.value);
-  }
-  
-  // Apply font size
-  const fontSizeMap = {
-    small: '0.875rem',
-    medium: '1rem',
-    large: '1.125rem',
-  };
-  root.style.setProperty('--font-size-small', fontSizeMap.small);
-  root.style.setProperty('--font-size-medium', fontSizeMap.medium);
-  root.style.setProperty('--font-size-large', fontSizeMap.large);
-  
-  // Set the active font size for messages
-  const activeFontSize = fontSizeMap[theme.fontSize];
-  root.style.setProperty('--message-font-size', activeFontSize);
-}
 
 /**
  * ThemeSettings Component
@@ -78,34 +32,33 @@ function applyTheme(theme: ThemeConfig) {
  * Requirements: 13.1, 13.2, 14.1, 14.2, 15.1, 15.2
  */
 const ThemeSettings: React.FC = () => {
-  const theme = useTheme();
-  const updateTheme = useChatStore((state) => state.updateTheme);
-
-  // Apply theme on mount and when theme changes
-  useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
+  // Use the useTheme hook for all theme management
+  const {
+    theme,
+    toggleTheme,
+    setPrimaryColor,
+    setFontSize,
+  } = useTheme();
 
   /**
    * Handle theme mode toggle
    */
   const handleModeToggle = () => {
-    const newMode = theme.mode === 'light' ? 'dark' : 'light';
-    updateTheme({ mode: newMode });
+    toggleTheme();
   };
 
   /**
    * Handle primary color selection
    */
   const handleColorSelect = (color: string) => {
-    updateTheme({ primaryColor: color });
+    setPrimaryColor(color);
   };
 
   /**
    * Handle font size change
    */
-  const handleFontSizeChange = (fontSize: ThemeConfig['fontSize']) => {
-    updateTheme({ fontSize });
+  const handleFontSizeChange = (fontSize: FontSize) => {
+    setFontSize(fontSize);
   };
 
   return (
@@ -172,7 +125,7 @@ const ThemeSettings: React.FC = () => {
           主题色
         </label>
         <div className="grid grid-cols-3 gap-3">
-          {PRESET_COLORS.map((color) => (
+          {DISPLAY_COLORS.map((color) => (
             <button
               key={color.id}
               type="button"
@@ -276,7 +229,7 @@ const ThemeSettings: React.FC = () => {
             <div className="flex justify-end">
               <div
                 className="max-w-[80%] px-4 py-2 rounded-2xl rounded-br-sm text-white"
-                style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${PRESET_COLORS.find(c => c.value === theme.primaryColor)?.gradient.match(/#[a-fA-F0-9]{6}$/)?.[0] || theme.primaryColor})` }}
+                style={{ background: `linear-gradient(135deg, ${theme.primaryColor}, ${DISPLAY_COLORS.find(c => c.value === theme.primaryColor)?.gradientEnd || theme.primaryColor})` }}
               >
                 <p
                   style={{
