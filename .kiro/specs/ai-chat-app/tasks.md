@@ -138,14 +138,14 @@
     - **Validates: Requirements 9.1, 9.2, 9.3**
 
 - [ ] 8. 聊天核心组件
-  - [-] 8.1 实现消息列表组件
+  - [x] 8.1 实现消息列表组件
     - 创建 `components/chat/MessageList.tsx`
     - 实现消息滚动容器
     - 实现自动滚动到底部
     - 实现自定义滚动条样式
     - _Requirements: 18.5_
   
-  - [ ] 8.2 实现消息项组件
+  - [x] 8.2 实现消息项组件
     - 创建 `components/chat/MessageItem.tsx`
     - 实现用户消息样式（右侧、渐变背景）
     - 实现 AI 消息样式（左侧、白色背景）
@@ -154,7 +154,7 @@
     - 集成 MarkdownRenderer
     - _Requirements: 18.3_
   
-  - [ ] 8.3 实现消息操作组件
+  - [x] 8.3 实现消息操作组件
     - 创建 `components/chat/MessageActions.tsx`
     - 实现复制按钮（带"已复制"反馈）
     - 实现重新生成按钮
@@ -166,14 +166,14 @@
     - 测试 AI 消息底部显示操作按钮
     - **Validates: Requirements 12.4**
 
-- [ ] 9. Checkpoint - 确保消息渲染正常
+- [x] 9. Checkpoint - 确保消息渲染正常
   - 确保 Markdown 渲染正确
   - 确保代码高亮正常
   - 确保消息操作按钮可用
   - 如有问题请询问用户
 
 - [ ] 10. 文件上传功能
-  - [ ] 10.1 实现文件上传组件
+  - [-] 10.1 实现文件上传组件
     - 创建 `components/chat/FileUploader.tsx`
     - 实现点击上传
     - 实现拖拽上传

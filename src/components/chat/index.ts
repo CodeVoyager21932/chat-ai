@@ -10,3 +10,6 @@ export type { MessageItemProps } from './MessageItem';
 
 export { default as MessageActions } from './MessageActions';
 export type { MessageActionsProps } from './MessageActions';
+
+export { default as FileUploader } from './FileUploader';
+export type { FileUploaderProps } from './FileUploader';
