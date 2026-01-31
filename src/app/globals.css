@@ -247,6 +247,10 @@ body {
   animation: slideIn 0.3s ease-out;
 }
 
+.animate-slide-out {
+  animation: slideOut 0.2s ease-in forwards;
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -266,6 +270,17 @@ body {
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@keyframes slideOut {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(100%);
   }
 }
 
