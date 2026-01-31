@@ -56,7 +56,7 @@
     - 测试所有模型 ID 路由到正确提供商
     - **Validates: Requirements 1.4**
   
-  - [ ] 3.3 实现对话管理 API 路由
+  - [x] 3.3 实现对话管理 API 路由
     - 创建 `app/api/conversations/route.ts`
     - 实现 GET（获取所有对话）、POST（创建/更新）、DELETE（删除）
     - _Requirements: 5.1, 5.4, 6.1, 6.4_
