@@ -16,3 +16,7 @@ export type { FileUploaderProps } from './FileUploader';
 
 export { default as InputArea } from './InputArea';
 export type { InputAreaProps } from './InputArea';
+
+export { default as MediaDownload } from './MediaDownload';
+export type { MediaDownloadProps, MediaItem } from './MediaDownload';
+export { extractMediaFromContent, generateDownloadFilename } from './MediaDownload';

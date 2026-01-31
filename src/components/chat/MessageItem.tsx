@@ -4,6 +4,7 @@ import React from 'react';
 import type { Message } from '@/types';
 import { MarkdownRenderer } from '@/components/markdown';
 import MessageActions from './MessageActions';
+import MediaDownload from './MediaDownload';
 
 /**
  * 消息项组件 Props
@@ -89,11 +90,17 @@ const MessageItem: React.FC<MessageItemProps> = ({
         {/* 消息操作按钮（仅 AI 消息） */}
         {/* @requirements 12.4 */}
         {isAssistant && (
-          <MessageActions
-            message={message}
-            onCopy={onCopy}
-            onRegenerate={onRegenerate}
-          />
+          <>
+            {/* 媒体下载按钮 */}
+            {/* @requirements 17.1, 17.2, 17.3 */}
+            <MediaDownload content={message.content} />
+            
+            <MessageActions
+              message={message}
+              onCopy={onCopy}
+              onRegenerate={onRegenerate}
+            />
+          </>
         )}
 
         {/* 用户消息操作按钮 */}
