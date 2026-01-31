@@ -358,6 +358,17 @@ export const useSortedConversations = () =>
   });
 
 /**
+ * Get a specific conversation by ID
+ * Returns null if not found or id is null
+ */
+export const useConversationById = (id: string | null): Conversation | null => {
+  return useChatStore((state) => {
+    if (!id) return null;
+    return state.conversations.find((c) => c.id === id) || null;
+  });
+};
+
+/**
  * Get non-archived conversations
  */
 export const useActiveConversations = () =>

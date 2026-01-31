@@ -35,8 +35,18 @@ async function generateConversationTitle(message: string): Promise<string> {
 
 const ChatContainer: React.FC<ChatContainerProps> = (props) => {
   const { conversationId, className = '' } = props;
-  const { getCurrentConversation, updateConversation, addMessage, settings } = useChatStore();
-  const currentConversation = getCurrentConversation();
+  
+  // Use proper selectors to avoid infinite loops
+  const updateConversation = useChatStore((state) => state.updateConversation);
+  const addMessage = useChatStore((state) => state.addMessage);
+  const settings = useChatStore((state) => state.settings);
+  
+  // Get current conversation with proper null handling
+  const currentConversation = useChatStore((state) => {
+    if (!conversationId) return null;
+    return state.conversations.find(c => c.id === conversationId) || null;
+  });
+  
   const model = currentConversation?.model || 'gpt-4o';
   const systemPrompt = currentConversation?.systemPrompt || settings.globalSystemPrompt;
   const savedMessageIds = useRef<Set<string>>(new Set());
@@ -103,7 +113,8 @@ const ChatContainer: React.FC<ChatContainerProps> = (props) => {
     } else {
       setMessages([]);
     }
-  }, [currentConversation?.id, currentConversation?.messages, setMessages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentConversation?.id, currentConversation?.messages?.length, setMessages]);
 
   const handleSend = useCallback(async (content: string, attachments: Attachment[]) => {
     if (!content.trim() && attachments.length === 0) return;

@@ -93,6 +93,14 @@ const ConversationList: React.FC<ConversationListProps> = ({
   const archiveConversation = useChatStore((state) => state.archiveConversation);
 
   /**
+   * 获取当前右键菜单对应的对话 - 使用 useMemo 避免重复计算
+   */
+  const contextConversation = React.useMemo(() => {
+    if (!contextMenu.conversationId) return undefined;
+    return conversations.find(c => c.id === contextMenu.conversationId);
+  }, [contextMenu.conversationId, conversations]);
+
+  /**
    * 过滤对话列表
    * @requirements 5.1, 5.7
    */
@@ -261,9 +269,9 @@ const ConversationList: React.FC<ConversationListProps> = ({
   }, [contextMenu.isOpen, closeContextMenu]);
 
   /**
-   * 格式化时间显示
+   * 格式化时间显示 - 使用 useCallback 避免重复创建
    */
-  const formatTime = (date: Date): string => {
+  const formatTime = useCallback((date: Date): string => {
     const now = new Date();
     const messageDate = new Date(date);
     const diffMs = now.getTime() - messageDate.getTime();
@@ -284,14 +292,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
         day: 'numeric' 
       });
     }
-  };
-
-  /**
-   * 获取当前右键菜单对应的对话
-   */
-  const getContextConversation = (): Conversation | undefined => {
-    return conversations.find(c => c.id === contextMenu.conversationId);
-  };
+  }, []);
 
   return (
     <>
@@ -322,7 +323,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
         <ContextMenu
           ref={contextMenuRef}
           position={contextMenu.position}
-          conversation={getContextConversation()}
+          conversation={contextConversation}
           onPin={handlePin}
           onArchive={handleArchive}
           onSettings={handleSettingsClick}

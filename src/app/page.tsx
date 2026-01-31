@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import Sidebar from '@/components/sidebar/Sidebar';
 import ChatContainer from '@/components/chat/ChatContainer';
 import ConversationSettings from '@/components/chat/ConversationSettings';
@@ -32,19 +32,23 @@ export default function Home() {
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
   
-  // Get current conversation from store
+  // Get current conversation ID and find conversation
+  // Use separate selectors to minimize re-renders
+  const currentConversationId = useChatStore((state) => state.currentConversationId);
   const getCurrentConversation = useChatStore((state) => state.getCurrentConversation);
-  const currentConversation = getCurrentConversation();
+  
+  // Get current conversation using the store method
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const currentConversation = useMemo(() => {
+    return getCurrentConversation();
+  }, [currentConversationId]);
   
   // Initialize theme on app startup
   // This ensures theme is applied correctly when the app loads
   // @requirements 13.1, 13.2, 13.3, 13.4
-  const { applyTheme } = useTheme();
+  useTheme();
   
-  // Apply theme on initial mount
-  useEffect(() => {
-    applyTheme();
-  }, [applyTheme]);
+  // Theme is automatically applied by useTheme hook's useEffect
 
   // Close export menu when clicking outside
   useEffect(() => {

@@ -142,9 +142,11 @@ export function useTheme(): UseThemeReturn {
   const systemPreference = useMemo(() => getSystemThemePreference(), []);
   
   // Apply theme to document when theme changes
+  // Only depend on the specific properties to avoid unnecessary re-renders
   useEffect(() => {
     applyThemeToDocument(theme);
-  }, [theme]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [theme.mode, theme.primaryColor, theme.fontSize]);
   
   // Listen for system theme preference changes
   useEffect(() => {
