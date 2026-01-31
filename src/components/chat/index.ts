@@ -13,3 +13,6 @@ export type { MessageActionsProps } from './MessageActions';
 
 export { default as FileUploader } from './FileUploader';
 export type { FileUploaderProps } from './FileUploader';
+
+export { default as InputArea } from './InputArea';
+export type { InputAreaProps } from './InputArea';
