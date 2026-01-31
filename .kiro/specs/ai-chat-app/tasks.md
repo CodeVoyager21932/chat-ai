@@ -247,14 +247,14 @@
     - 实现标签页切换（主题、提示词）
     - _Requirements: 11.1_
   
-  - [-] 14.2 实现主题设置组件
+  - [x] 14.2 实现主题设置组件
     - 创建 `components/settings/ThemeSettings.tsx`
     - 实现深色/浅色模式切换
     - 实现主题色选择
     - 实现字体大小调整
     - _Requirements: 13.1, 13.2, 14.1, 14.2, 15.1, 15.2_
   
-  - [~] 14.3 实现提示词设置组件
+  - [-] 14.3 实现提示词设置组件
     - 创建 `components/settings/PromptSettings.tsx`
     - 实现全局系统提示词编辑
     - 实现预设角色模板选择
