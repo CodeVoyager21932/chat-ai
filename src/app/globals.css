@@ -50,6 +50,58 @@
   --font-size-medium: 1rem;
   --font-size-large: 1.125rem;
   
+  /* ---- Message Font Size (default to medium, can be overridden by useTheme) ---- */
+  --message-font-size: var(--font-size-medium);
+  
+  /* ---- Scrollbar ---- */
+  --scrollbar-track: #f1f1f1;
+  --scrollbar-thumb: #c1c1c1;
+  --scrollbar-thumb-hover: #a1a1a1;
+}
+
+/* ============================================
+   Light Mode Variables (Explicit)
+   ============================================ */
+
+.light {
+  /* ---- Base Colors ---- */
+  --background: #ffffff;
+  --foreground: #1a1a2e;
+  
+  /* ---- Primary Gradient Colors (Purple/Blue) ---- */
+  --gradient-start: #667eea;
+  --gradient-end: #764ba2;
+  
+  /* ---- Semantic Colors ---- */
+  --primary: #667eea;
+  --primary-foreground: #ffffff;
+  --secondary: #f3f4f6;
+  --secondary-foreground: #374151;
+  --muted: #f9fafb;
+  --muted-foreground: #6b7280;
+  --accent: #764ba2;
+  --accent-foreground: #ffffff;
+  
+  /* ---- Border & Input ---- */
+  --border: #e5e7eb;
+  --input: #f3f4f6;
+  --ring: #667eea;
+  
+  /* ---- Card & Sidebar ---- */
+  --card: #ffffff;
+  --card-foreground: #1a1a2e;
+  --sidebar: #f8f9fa;
+  --sidebar-foreground: #374151;
+  
+  /* ---- Message Colors ---- */
+  --message-user: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  --message-assistant: #ffffff;
+  
+  /* ---- Gradients ---- */
+  --gradient-primary: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  --gradient-header: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  --gradient-button: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  
   /* ---- Scrollbar ---- */
   --scrollbar-track: #f1f1f1;
   --scrollbar-thumb: #c1c1c1;
@@ -98,6 +150,9 @@
   --gradient-primary: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
   --gradient-header: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
   --gradient-button: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+  
+  /* ---- Font Sizes (inherited from :root, but can be customized for dark mode) ---- */
+  /* --font-size-small, --font-size-medium, --font-size-large are inherited */
   
   /* ---- Scrollbar ---- */
   --scrollbar-track: #1a1a2e;
@@ -324,6 +379,11 @@ body {
 
 .text-chat-large {
   font-size: var(--font-size-large);
+}
+
+/* Dynamic message font size (controlled by useTheme hook) */
+.text-chat-dynamic {
+  font-size: var(--message-font-size);
 }
 
 /* ============================================
