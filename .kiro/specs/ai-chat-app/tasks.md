@@ -80,7 +80,7 @@
     - 创建 `components/ui/Toast.tsx`
     - _Requirements: 18.1_
   
-  - [ ] 5.2 创建主布局组件
+  - [x] 5.2 创建主布局组件
     - 创建 `app/layout.tsx` 根布局
     - 创建 `app/page.tsx` 主页面
     - 实现侧边栏 + 主内容区布局
