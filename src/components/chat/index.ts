@@ -2,6 +2,9 @@
  * 聊天组件统一导出
  */
 
+export { default as ChatContainer } from './ChatContainer';
+export type { ChatContainerProps } from './ChatContainer';
+
 export { default as MessageList } from './MessageList';
 export type { MessageListProps } from './MessageList';
 
@@ -20,3 +23,6 @@ export type { InputAreaProps } from './InputArea';
 export { default as MediaDownload } from './MediaDownload';
 export type { MediaDownloadProps, MediaItem } from './MediaDownload';
 export { extractMediaFromContent, generateDownloadFilename } from './MediaDownload';
+
+export { default as ConversationSettings } from './ConversationSettings';
+export type { ConversationSettingsProps } from './ConversationSettings';

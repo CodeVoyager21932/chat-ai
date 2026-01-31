@@ -145,7 +145,7 @@ const InputArea: React.FC<InputAreaProps> = ({
   const canSend = (content.trim() || attachments.length > 0) && !isLoading && !disabled;
 
   return (
-    <div className="p-4 bg-[var(--card)] border-t border-[var(--border)]">
+    <div className="p-4 bg-[var(--card)] border-t border-[var(--border)] safe-area-bottom">
       <div className="max-w-3xl mx-auto">
         {/* 模型选择器 */}
         <div className="flex items-center justify-end mb-2">

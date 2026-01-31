@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { memo } from 'react';
 import type { Message } from '@/types';
 import { MarkdownRenderer } from '@/components/markdown';
 import MessageActions from './MessageActions';
@@ -32,9 +32,11 @@ export interface MessageItemProps {
  * - 淡入动画
  * - 集成 MarkdownRenderer
  * 
- * @requirements 18.3
+ * Performance optimized with React.memo
+ * 
+ * @requirements 18.3, 18.4
  */
-const MessageItem: React.FC<MessageItemProps> = ({
+const MessageItem: React.FC<MessageItemProps> = memo(({
   message,
   isLast = false,
   onCopy,
@@ -52,7 +54,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
   return (
     <div
       className={`
-        flex items-start gap-3 animate-fade-in
+        flex items-start gap-3 animate-fade-in group
         ${isUser ? 'flex-row-reverse' : ''}
       `}
       role="article"
@@ -112,6 +114,7 @@ const MessageItem: React.FC<MessageItemProps> = ({
               text-[var(--muted-foreground)]
               hover:bg-[var(--muted)]
               transition-colors
+              opacity-0 group-hover:opacity-100
             "
             aria-label="编辑消息"
           >
@@ -121,7 +124,16 @@ const MessageItem: React.FC<MessageItemProps> = ({
       </div>
     </div>
   );
-};
+}, (prevProps, nextProps) => {
+  // Custom comparison for memo - only re-render if these props change
+  return (
+    prevProps.message.id === nextProps.message.id &&
+    prevProps.message.content === nextProps.message.content &&
+    prevProps.isLast === nextProps.isLast
+  );
+});
+
+MessageItem.displayName = 'MessageItem';
 
 /**
  * 头像组件 Props
@@ -131,9 +143,9 @@ interface AvatarProps {
 }
 
 /**
- * 头像组件
+ * 头像组件 - Memoized for performance
  */
-const Avatar: React.FC<AvatarProps> = ({ isUser }) => {
+const Avatar: React.FC<AvatarProps> = memo(({ isUser }) => {
   if (isUser) {
     return (
       <div className="w-8 h-8 rounded-full bg-[var(--muted)] flex items-center justify-center flex-shrink-0">
@@ -151,7 +163,9 @@ const Avatar: React.FC<AvatarProps> = ({ isUser }) => {
       </svg>
     </div>
   );
-};
+});
+
+Avatar.displayName = 'Avatar';
 
 /**
  * 附件列表组件 Props
@@ -161,9 +175,9 @@ interface AttachmentListProps {
 }
 
 /**
- * 附件列表组件
+ * 附件列表组件 - Memoized for performance
  */
-const AttachmentList: React.FC<AttachmentListProps> = ({ attachments }) => {
+const AttachmentList: React.FC<AttachmentListProps> = memo(({ attachments }) => {
   if (!attachments || attachments.length === 0) return null;
 
   return (
@@ -180,6 +194,7 @@ const AttachmentList: React.FC<AttachmentListProps> = ({ attachments }) => {
                   src={attachment.preview}
                   alt={attachment.name}
                   className="w-8 h-8 rounded object-cover"
+                  loading="lazy"
                 />
               ) : (
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -197,6 +212,8 @@ const AttachmentList: React.FC<AttachmentListProps> = ({ attachments }) => {
       ))}
     </div>
   );
-};
+});
+
+AttachmentList.displayName = 'AttachmentList';
 
 export default MessageItem;

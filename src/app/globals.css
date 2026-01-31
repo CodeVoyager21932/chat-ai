@@ -567,3 +567,215 @@ code {
   background: var(--primary);
   color: var(--primary-foreground);
 }
+
+
+/* ============================================
+   Responsive Design Optimizations
+   @requirements 18.4
+   ============================================ */
+
+/* Mobile-first responsive breakpoints */
+/* sm: 640px, md: 768px, lg: 1024px, xl: 1280px */
+
+/* Mobile optimizations */
+@media (max-width: 639px) {
+  /* Larger touch targets on mobile */
+  .btn-primary,
+  .btn-secondary,
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Adjust message bubbles for mobile */
+  .message-user,
+  .message-assistant {
+    max-width: 90%;
+  }
+  
+  /* Smaller padding on mobile */
+  .card {
+    padding: 0.75rem;
+  }
+  
+  /* Adjust font sizes for mobile readability */
+  :root {
+    --font-size-small: 0.8125rem;
+    --font-size-medium: 0.9375rem;
+    --font-size-large: 1.0625rem;
+  }
+}
+
+/* Tablet optimizations */
+@media (min-width: 640px) and (max-width: 1023px) {
+  .message-user,
+  .message-assistant {
+    max-width: 85%;
+  }
+}
+
+/* Desktop optimizations */
+@media (min-width: 1024px) {
+  .message-user,
+  .message-assistant {
+    max-width: 80%;
+  }
+}
+
+/* ============================================
+   Touch Interaction Optimizations
+   @requirements 18.4
+   ============================================ */
+
+/* Disable hover effects on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .btn-primary:hover,
+  .btn-secondary:hover,
+  .card-hover:hover,
+  .sidebar-item:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  /* Active state for touch feedback */
+  .btn-primary:active {
+    opacity: 0.8;
+  }
+  
+  .btn-secondary:active {
+    background: var(--muted);
+  }
+  
+  .sidebar-item:active {
+    background: var(--muted);
+  }
+  
+  /* Larger scrollbar for touch */
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* Improve touch scrolling */
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* Prevent text selection during touch interactions */
+.no-select {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Touch-friendly tap highlight */
+button,
+a,
+[role="button"] {
+  -webkit-tap-highlight-color: rgba(102, 126, 234, 0.2);
+}
+
+/* ============================================
+   Safe Area Insets (for notched devices)
+   ============================================ */
+
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-area-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-area-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .safe-area-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* ============================================
+   Popover Styles (for dropdowns)
+   ============================================ */
+
+:root {
+  --popover: var(--card);
+  --popover-foreground: var(--card-foreground);
+}
+
+.dark {
+  --popover: var(--card);
+  --popover-foreground: var(--card-foreground);
+}
+
+/* ============================================
+   Reduced Motion Preferences
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  .animate-fade-in,
+  .animate-slide-in,
+  .animate-slide-out {
+    animation: none;
+  }
+}
+
+/* ============================================
+   Print Styles
+   ============================================ */
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+    color: black;
+  }
+  
+  .message-user {
+    background: #f0f0f0;
+    color: black;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  
+  .message-assistant {
+    background: white;
+    border: 1px solid #ccc;
+  }
+}
+
+/* ============================================
+   Landscape Mode Optimizations
+   ============================================ */
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Reduce vertical spacing in landscape on small screens */
+  .message-user,
+  .message-assistant {
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  header {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+}

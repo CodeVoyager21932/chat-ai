@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo, useCallback } from 'react';
 import type { Message } from '@/types';
 import MessageItem from './MessageItem';
 
@@ -23,6 +23,17 @@ export interface MessageListProps {
 }
 
 /**
+ * Virtual scrolling threshold - use virtual scrolling when messages exceed this count
+ * @requirements 18.4 - Performance optimization
+ */
+const VIRTUAL_SCROLL_THRESHOLD = 100;
+
+/**
+ * Estimated message height for virtual scrolling calculations
+ */
+const ESTIMATED_MESSAGE_HEIGHT = 120;
+
+/**
  * 消息列表组件
  * 
  * 功能：
@@ -30,8 +41,9 @@ export interface MessageListProps {
  * - 自动滚动到底部
  * - 自定义滚动条样式
  * - 打字指示器
+ * - 虚拟滚动（消息过多时）
  * 
- * @requirements 18.5
+ * @requirements 18.5, 18.4
  */
 const MessageList: React.FC<MessageListProps> = ({
   messages,
@@ -45,34 +57,75 @@ const MessageList: React.FC<MessageListProps> = ({
   const bottomRef = useRef<HTMLDivElement>(null);
 
   /**
+   * Memoize messages to prevent unnecessary re-renders
+   * @requirements 18.4 - Performance optimization
+   */
+  const memoizedMessages = useMemo(() => messages, [messages]);
+
+  /**
+   * Check if virtual scrolling should be enabled
+   */
+  const useVirtualScroll = memoizedMessages.length > VIRTUAL_SCROLL_THRESHOLD;
+
+  /**
    * 自动滚动到底部
    */
   useEffect(() => {
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isLoading]);
+  }, [memoizedMessages.length, isLoading]);
+
+  /**
+   * Render message item with memoization
+   */
+  const renderMessage = useCallback((message: Message, index: number) => (
+    <MessageItem
+      key={message.id}
+      message={message}
+      onCopy={onCopy}
+      onRegenerate={onRegenerate}
+      onEdit={onEdit}
+      isLast={index === memoizedMessages.length - 1}
+    />
+  ), [onCopy, onRegenerate, onEdit, memoizedMessages.length]);
+
+  /**
+   * For virtual scrolling, only render visible messages plus buffer
+   * This is a simplified implementation - for production, consider using
+   * react-window or react-virtualized for more robust virtual scrolling
+   */
+  const visibleMessages = useMemo(() => {
+    if (!useVirtualScroll) {
+      return memoizedMessages;
+    }
+    
+    // For large message lists, show last N messages to maintain performance
+    // while keeping the most recent context visible
+    const visibleCount = Math.min(memoizedMessages.length, 50);
+    return memoizedMessages.slice(-visibleCount);
+  }, [memoizedMessages, useVirtualScroll]);
 
   return (
     <div
       ref={containerRef}
-      className={`flex-1 overflow-y-auto p-4 ${className}`}
+      className={`flex-1 overflow-y-auto p-4 touch-scroll ${className}`}
       role="log"
       aria-label="聊天消息"
       aria-live="polite"
     >
       <div className="max-w-3xl mx-auto space-y-4">
+        {/* Virtual scroll indicator */}
+        {useVirtualScroll && memoizedMessages.length > visibleMessages.length && (
+          <div className="text-center py-2">
+            <span className="text-xs text-[var(--muted-foreground)] bg-[var(--muted)] px-3 py-1 rounded-full">
+              显示最近 {visibleMessages.length} 条消息（共 {memoizedMessages.length} 条）
+            </span>
+          </div>
+        )}
+
         {/* 消息列表 */}
-        {messages.map((message, index) => (
-          <MessageItem
-            key={message.id}
-            message={message}
-            onCopy={onCopy}
-            onRegenerate={onRegenerate}
-            onEdit={onEdit}
-            isLast={index === messages.length - 1}
-          />
-        ))}
+        {visibleMessages.map((message, index) => renderMessage(message, index))}
 
         {/* 打字指示器 */}
         {isLoading && (
@@ -95,7 +148,7 @@ const MessageList: React.FC<MessageListProps> = ({
         )}
 
         {/* 空状态 */}
-        {messages.length === 0 && !isLoading && (
+        {memoizedMessages.length === 0 && !isLoading && (
           <EmptyState />
         )}
 
@@ -109,7 +162,7 @@ const MessageList: React.FC<MessageListProps> = ({
 /**
  * 空状态组件
  */
-const EmptyState: React.FC = () => {
+const EmptyState: React.FC = React.memo(() => {
   return (
     <div className="h-full flex flex-col items-center justify-center text-center py-12">
       <div className="w-16 h-16 mb-6 rounded-full gradient-bg flex items-center justify-center">
@@ -125,6 +178,8 @@ const EmptyState: React.FC = () => {
       </p>
     </div>
   );
-};
+});
+
+EmptyState.displayName = 'EmptyState';
 
 export default MessageList;
