@@ -111,7 +111,7 @@
     - **Validates: Requirements 5.1, 5.6, 5.7**
 
 - [ ] 7. Markdown 和代码渲染
-  - [-] 7.1 实现 Markdown 渲染组件
+  - [x] 7.1 实现 Markdown 渲染组件
     - 安装 react-markdown, remark-gfm, rehype-katex, katex
     - 创建 `components/markdown/MarkdownRenderer.tsx`
     - 配置 GFM 支持（表格、删除线、任务列表）
@@ -123,7 +123,7 @@
     - 测试各种 Markdown 语法渲染为正确 HTML
     - **Validates: Requirements 8.1, 8.2, 8.3, 8.4, 8.5**
   
-  - [ ] 7.3 实现代码块组件
+  - [x] 7.3 实现代码块组件
     - 安装 prism-react-renderer 或 highlight.js
     - 创建 `components/markdown/CodeBlock.tsx`
     - 实现语法高亮
@@ -138,7 +138,7 @@
     - **Validates: Requirements 9.1, 9.2, 9.3**
 
 - [ ] 8. 聊天核心组件
-  - [ ] 8.1 实现消息列表组件
+  - [-] 8.1 实现消息列表组件
     - 创建 `components/chat/MessageList.tsx`
     - 实现消息滚动容器
     - 实现自动滚动到底部
