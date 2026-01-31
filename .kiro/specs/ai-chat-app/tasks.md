@@ -93,14 +93,14 @@
     - 实现对话列表容器
     - _Requirements: 5.1, 5.2_
   
-  - [ ] 6.2 实现对话列表组件
+  - [x] 6.2 实现对话列表组件
     - 创建 `components/sidebar/ConversationList.tsx`
     - 实现对话项渲染（标题、时间、置顶/归档标记）
     - 实现点击切换对话
     - 实现右键菜单（删除、归档、置顶）
     - _Requirements: 5.1, 5.3, 5.4, 5.5, 5.6_
   
-  - [ ] 6.3 实现搜索栏组件
+  - [-] 6.3 实现搜索栏组件
     - 创建 `components/sidebar/SearchBar.tsx`
     - 实现搜索输入和过滤逻辑
     - _Requirements: 5.7_
