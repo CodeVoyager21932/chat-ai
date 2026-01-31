@@ -61,7 +61,7 @@
     - 实现 GET（获取所有对话）、POST（创建/更新）、DELETE（删除）
     - _Requirements: 5.1, 5.4, 6.1, 6.4_
   
-  - [ ] 3.4 实现导出 API 路由
+  - [x] 3.4 实现导出 API 路由
     - 创建 `app/api/export/route.ts`
     - 实现 Markdown 导出
     - 实现 JSON 导出
