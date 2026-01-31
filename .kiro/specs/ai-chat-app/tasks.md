@@ -73,7 +73,7 @@
   - 如有问题请询问用户
 
 - [ ] 5. 基础 UI 组件
-  - [-] 5.1 创建通用 UI 组件
+  - [x] 5.1 创建通用 UI 组件
     - 创建 `components/ui/Button.tsx`
     - 创建 `components/ui/Select.tsx`
     - 创建 `components/ui/Modal.tsx`
