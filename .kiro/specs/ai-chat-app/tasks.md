@@ -215,7 +215,7 @@
     - **Validates: Requirements 19.3**
 
 - [ ] 12. 聊天容器和流式响应
-  - [-] 12.1 实现聊天容器组件
+  - [x] 12.1 实现聊天容器组件
     - 创建 `components/chat/ChatContainer.tsx`
     - 集成 MessageList、InputArea
     - 实现 useChat hook 集成
@@ -223,7 +223,7 @@
     - 实现打字指示器
     - _Requirements: 3.1, 3.2, 3.3, 3.4_
   
-  - [~] 12.2 实现对话标题自动生成
+  - [-] 12.2 实现对话标题自动生成
     - 在首条消息后调用 AI 生成标题
     - 限制标题长度 <= 50 字符
     - 保存标题到对话
