@@ -3,13 +3,13 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { useShallow } from 'zustand/react/shallow';
 import type {
   Conversation,
   Message,
   AppSettings,
   ThemeConfig,
   PresetPrompt,
+  ApiConfig,
 } from '@/types';
 
 /**
@@ -53,12 +53,24 @@ const defaultTheme: ThemeConfig = {
 };
 
 /**
+ * Default API configuration
+ */
+const defaultApiConfig: ApiConfig = {
+  openaiApiKey: '',
+  anthropicApiKey: '',
+  googleApiKey: '',
+  customEndpoint: '',
+  useCustomEndpoint: false,
+};
+
+/**
  * Default application settings
  */
 const defaultSettings: AppSettings = {
   globalSystemPrompt: '你是一个有帮助的 AI 助手',
   theme: defaultTheme,
   presetPrompts: defaultPresetPrompts,
+  apiConfig: defaultApiConfig,
 };
 
 /**
@@ -142,6 +154,12 @@ interface ChatStore {
    * @param theme - Partial theme config to merge
    */
   updateTheme: (theme: Partial<ThemeConfig>) => void;
+
+  /**
+   * Update API configuration
+   * @param apiConfig - Partial API config to merge
+   */
+  updateApiConfig: (apiConfig: Partial<ApiConfig>) => void;
 
   // ============ 辅助方法 (Helper Methods) ============
   /**
@@ -291,6 +309,15 @@ export const useChatStore = create<ChatStore>()(
           settings: {
             ...state.settings,
             theme: { ...state.settings.theme, ...theme },
+          },
+        }));
+      },
+
+      updateApiConfig: (apiConfig: Partial<ApiConfig>) => {
+        set((state) => ({
+          settings: {
+            ...state.settings,
+            apiConfig: { ...state.settings.apiConfig, ...apiConfig },
           },
         }));
       },

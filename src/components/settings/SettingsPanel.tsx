@@ -4,11 +4,12 @@ import React, { useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import ThemeSettings from '@/components/settings/ThemeSettings';
 import PromptSettings from '@/components/settings/PromptSettings';
+import ApiSettings from '@/components/settings/ApiSettings';
 
 /**
  * Tab type for settings panel navigation
  */
-type SettingsTab = 'theme' | 'prompts';
+type SettingsTab = 'theme' | 'prompts' | 'api';
 
 /**
  * Tab configuration interface
@@ -70,6 +71,26 @@ const TABS: TabConfig[] = [
       </svg>
     ),
   },
+  {
+    id: 'api',
+    label: 'API 设置',
+    icon: (
+      <svg
+        className="w-5 h-5"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M12 2L2 7l10 5 10-5-10-5z" />
+        <path d="M2 17l10 5 10-5" />
+        <path d="M2 12l10 5 10-5" />
+      </svg>
+    ),
+  },
 ];
 
 /**
@@ -105,6 +126,8 @@ const SettingsPanel: React.FC<SettingsPanelProps> = ({ isOpen, onClose }) => {
         return <ThemeSettings />;
       case 'prompts':
         return <PromptSettings />;
+      case 'api':
+        return <ApiSettings />;
       default:
         return null;
     }

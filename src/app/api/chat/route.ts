@@ -3,46 +3,60 @@
 // Requirements: 1.4, 3.1, 3.2, 4.1, 11.4, 11.5
 
 import { streamText, CoreMessage, ImagePart, TextPart } from 'ai';
-import { openai } from '@ai-sdk/openai';
-import { anthropic } from '@ai-sdk/anthropic';
-import { google } from '@ai-sdk/google';
+import { createOpenAI } from '@ai-sdk/openai';
+import { createAnthropic } from '@ai-sdk/anthropic';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { Message, Attachment, ChatRequest } from '@/types';
 
 /**
- * 根据模型 ID 获取对应的 AI 提供商
+ * 根据模型 ID 和 API 密钥获取对应的 AI 提供商
  * Property 3: Model Routing to Correct Provider
  * - gpt-* 模型路由到 OpenAI
  * - claude-* 模型路由到 Anthropic
  * - gemini-* 模型路由到 Google
  */
-function getProviderForModel(model: string) {
+function getProviderForModel(model: string, apiKey: string) {
   if (model.startsWith('gpt')) {
-    return openai;
+    return createOpenAI({ apiKey });
   }
   if (model.startsWith('claude')) {
-    return anthropic;
+    return createAnthropic({ apiKey });
   }
   if (model.startsWith('gemini')) {
-    return google;
+    return createGoogleGenerativeAI({ apiKey });
   }
   throw new Error(`Unknown model: ${model}`);
+}
+
+/**
+ * 从请求头或环境变量获取 API 密钥
+ * 优先级：请求头 > 环境变量
+ */
+function getApiKey(model: string, headers: Headers): string | undefined {
+  if (model.startsWith('gpt')) {
+    return headers.get('x-openai-api-key') || process.env.OPENAI_API_KEY;
+  }
+  if (model.startsWith('claude')) {
+    return headers.get('x-anthropic-api-key') || process.env.ANTHROPIC_API_KEY;
+  }
+  if (model.startsWith('gemini')) {
+    return headers.get('x-google-api-key') || process.env.GOOGLE_GENERATIVE_AI_API_KEY;
+  }
+  return undefined;
 }
 
 /**
  * 验证 API 密钥是否存在
  * Requirement 4.1: API 密钥从服务端环境变量读取
  */
-function validateApiKey(model: string): void {
-  if (model.startsWith('gpt')) {
-    if (!process.env.OPENAI_API_KEY) {
+function validateApiKey(model: string, headers: Headers): void {
+  const apiKey = getApiKey(model, headers);
+  if (!apiKey) {
+    if (model.startsWith('gpt')) {
       throw new Error('OPENAI_API_KEY is not configured');
-    }
-  } else if (model.startsWith('claude')) {
-    if (!process.env.ANTHROPIC_API_KEY) {
+    } else if (model.startsWith('claude')) {
       throw new Error('ANTHROPIC_API_KEY is not configured');
-    }
-  } else if (model.startsWith('gemini')) {
-    if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
+    } else if (model.startsWith('gemini')) {
       throw new Error('GOOGLE_GENERATIVE_AI_API_KEY is not configured');
     }
   }
@@ -165,15 +179,12 @@ export async function POST(request: Request) {
       );
     }
 
-    // 验证 API 密钥
-    // Requirement 4.1: API 密钥从服务端环境变量读取
-    // Requirement 4.3: 密钥缺失或无效时返回 401 错误
-    try {
-      validateApiKey(model);
-    } catch (error) {
+    // 获取 API 密钥用于请求
+    const apiKey = getApiKey(model, request.headers);
+    if (!apiKey) {
       return new Response(
         JSON.stringify({ 
-          message: 'API configuration error. Please contact administrator.', 
+          message: 'API key not configured', 
           status: 401 
         }),
         { status: 401, headers: { 'Content-Type': 'application/json' } }
@@ -184,7 +195,7 @@ export async function POST(request: Request) {
     // Requirement 1.4: 根据模型选择提供商
     let provider;
     try {
-      provider = getProviderForModel(model);
+      provider = getProviderForModel(model, apiKey);
     } catch (error) {
       return new Response(
         JSON.stringify({ 

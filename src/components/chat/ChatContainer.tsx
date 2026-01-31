@@ -16,11 +16,31 @@ function generateMessageId(): string {
   return 'msg_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
 }
 
-async function generateConversationTitle(message: string): Promise<string> {
+/**
+ * Build API headers with API keys from config
+ */
+function buildApiHeaders(apiConfig: { openaiApiKey?: string; anthropicApiKey?: string; googleApiKey?: string } | undefined): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (apiConfig?.openaiApiKey) {
+    headers['x-openai-api-key'] = apiConfig.openaiApiKey;
+  }
+  if (apiConfig?.anthropicApiKey) {
+    headers['x-anthropic-api-key'] = apiConfig.anthropicApiKey;
+  }
+  if (apiConfig?.googleApiKey) {
+    headers['x-google-api-key'] = apiConfig.googleApiKey;
+  }
+  return headers;
+}
+
+async function generateConversationTitle(message: string, apiConfig?: { openaiApiKey?: string }): Promise<string> {
   try {
+    const headers = buildApiHeaders(apiConfig);
     const response = await fetch('/api/generate-title', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
       body: JSON.stringify({ message }),
     });
     if (!response.ok) throw new Error('Failed to generate title');
@@ -43,6 +63,7 @@ const ChatContainer: React.FC<ChatContainerProps> = (props) => {
   const updateConversation = useChatStore((state) => state.updateConversation);
   const addMessage = useChatStore((state) => state.addMessage);
   const globalSystemPrompt = useChatStore((state) => state.settings.globalSystemPrompt);
+  const apiConfig = useChatStore((state) => state.settings.apiConfig);
   
   // Get individual primitive values instead of creating new objects
   const convId = useChatStore((state) => {
@@ -83,10 +104,14 @@ const ChatContainer: React.FC<ChatContainerProps> = (props) => {
   // Memoize the body object to prevent useChat from re-initializing
   const chatBody = useMemo(() => ({ model, systemPrompt }), [model, systemPrompt]);
 
+  // Memoize headers with API keys
+  const chatHeaders = useMemo(() => buildApiHeaders(apiConfig), [apiConfig]);
+
   const chatHook = useChat({
     api: '/api/chat',
     id: conversationId || undefined,
     body: chatBody,
+    headers: chatHeaders,
     onFinish: async (message) => {
       if (convId && !savedMessageIds.current.has(message.id)) {
         savedMessageIds.current.add(message.id);
@@ -103,7 +128,7 @@ const ChatContainer: React.FC<ChatContainerProps> = (props) => {
         if (isNewConversation && hasNotGeneratedTitle && hasFirstMessage) {
           titleGeneratedRef.current.add(convId);
           const messageForTitle = firstUserMessageRef.current!;
-          generateConversationTitle(messageForTitle).then((title) => {
+          generateConversationTitle(messageForTitle, apiConfig).then((title) => {
             updateConversation(convId, { title });
           }).catch((err) => {
             console.error('Failed to update title:', err);

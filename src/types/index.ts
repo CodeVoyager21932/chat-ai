@@ -148,6 +148,25 @@ export interface AppSettings {
   theme: ThemeConfig;
   /** Array of preset prompt templates */
   presetPrompts: PresetPrompt[];
+  /** API configuration */
+  apiConfig: ApiConfig;
+}
+
+/**
+ * API 配置
+ * API keys and endpoint configuration
+ */
+export interface ApiConfig {
+  /** OpenAI API key */
+  openaiApiKey: string;
+  /** Anthropic API key */
+  anthropicApiKey: string;
+  /** Google AI API key */
+  googleApiKey: string;
+  /** Custom API endpoint (optional, for proxies or self-hosted models) */
+  customEndpoint?: string;
+  /** Whether to use custom endpoint */
+  useCustomEndpoint: boolean;
 }
 
 /**

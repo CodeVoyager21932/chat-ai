@@ -3,13 +3,27 @@
 // Requirements: 7.1, 7.2, 7.3
 
 import { generateText } from 'ai';
-import { openai } from '@ai-sdk/openai';
+import { createOpenAI } from '@ai-sdk/openai';
 
 /**
  * Maximum length for generated titles
  * Property 9: Title Generation Constraints - title length <= 50 characters
  */
 const MAX_TITLE_LENGTH = 50;
+
+/**
+ * 从请求头或环境变量获取 OpenAI API 密钥
+ */
+function getOpenAIApiKey(headers: Headers): string | undefined {
+  return headers.get('x-openai-api-key') || process.env.OPENAI_API_KEY;
+}
+
+/**
+ * 创建 OpenAI 客户端
+ */
+function createOpenAIClient(apiKey: string) {
+  return createOpenAI({ apiKey });
+}
 
 /**
  * POST /api/generate-title
@@ -34,7 +48,8 @@ export async function POST(request: Request) {
     }
 
     // Check if OpenAI API key is configured
-    if (!process.env.OPENAI_API_KEY) {
+    const apiKey = getOpenAIApiKey(request.headers);
+    if (!apiKey) {
       // Fallback: generate title from message content directly
       const fallbackTitle = generateFallbackTitle(message);
       return new Response(
@@ -44,6 +59,7 @@ export async function POST(request: Request) {
     }
 
     // Generate title using AI
+    const openai = createOpenAIClient(apiKey);
     const result = await generateText({
       model: openai('gpt-4o-mini'),
       system: `You are a title generator. Generate a concise, descriptive title for a conversation based on the user's first message. 
