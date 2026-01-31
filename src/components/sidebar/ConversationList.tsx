@@ -3,6 +3,7 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useChatStore, useSortedConversations } from '@/store';
 import type { Conversation } from '@/types';
+import ConversationSettings from '@/components/chat/ConversationSettings';
 
 /**
  * 右键菜单位置
@@ -68,6 +69,16 @@ const ConversationList: React.FC<ConversationListProps> = ({
     isOpen: false,
     conversationId: null,
     conversationTitle: '',
+  });
+
+  // 对话设置模态框状态
+  // @requirements 11.2 - Support setting system prompt when creating/editing conversation
+  const [settingsModal, setSettingsModal] = useState<{
+    isOpen: boolean;
+    conversation: Conversation | null;
+  }>({
+    isOpen: false,
+    conversation: null,
   });
 
   // 右键菜单引用
@@ -168,6 +179,33 @@ const ConversationList: React.FC<ConversationListProps> = ({
     }
     closeContextMenu();
   }, [contextMenu.conversationId, conversations, closeContextMenu]);
+
+  /**
+   * 处理打开对话设置
+   * @requirements 11.2 - Support setting system prompt when creating/editing conversation
+   */
+  const handleSettingsClick = useCallback(() => {
+    if (contextMenu.conversationId) {
+      const conversation = conversations.find(c => c.id === contextMenu.conversationId);
+      if (conversation) {
+        setSettingsModal({
+          isOpen: true,
+          conversation,
+        });
+      }
+    }
+    closeContextMenu();
+  }, [contextMenu.conversationId, conversations, closeContextMenu]);
+
+  /**
+   * 关闭对话设置模态框
+   */
+  const handleSettingsClose = useCallback(() => {
+    setSettingsModal({
+      isOpen: false,
+      conversation: null,
+    });
+  }, []);
 
   /**
    * 确认删除
@@ -287,6 +325,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
           conversation={getContextConversation()}
           onPin={handlePin}
           onArchive={handleArchive}
+          onSettings={handleSettingsClick}
           onDelete={handleDeleteClick}
           onClose={closeContextMenu}
         />
@@ -298,6 +337,16 @@ const ConversationList: React.FC<ConversationListProps> = ({
           conversationTitle={deleteConfirmation.conversationTitle}
           onConfirm={handleDeleteConfirm}
           onCancel={handleDeleteCancel}
+        />
+      )}
+
+      {/* ============ 对话设置模态框 ============ */}
+      {/* @requirements 11.2 - Support setting system prompt when creating/editing conversation */}
+      {settingsModal.isOpen && settingsModal.conversation && (
+        <ConversationSettings
+          conversation={settingsModal.conversation}
+          isOpen={settingsModal.isOpen}
+          onClose={handleSettingsClose}
         />
       )}
     </>
@@ -470,16 +519,17 @@ interface ContextMenuProps {
   conversation: Conversation | undefined;
   onPin: () => void;
   onArchive: () => void;
+  onSettings: () => void;
   onDelete: () => void;
   onClose: () => void;
 }
 
 /**
  * 右键菜单组件
- * @requirements 5.4, 5.5, 5.6
+ * @requirements 5.4, 5.5, 5.6, 11.2
  */
 const ContextMenu = React.forwardRef<HTMLDivElement, ContextMenuProps>(
-  ({ position, conversation, onPin, onArchive, onDelete, onClose }, ref) => {
+  ({ position, conversation, onPin, onArchive, onSettings, onDelete, onClose }, ref) => {
     if (!conversation) return null;
 
     // 计算菜单位置，确保不超出视口
@@ -504,6 +554,43 @@ const ContextMenu = React.forwardRef<HTMLDivElement, ContextMenuProps>(
         role="menu"
         aria-label="对话操作菜单"
       >
+        {/* 设置提示词 */}
+        {/* @requirements 11.2 - Support setting system prompt when creating/editing conversation */}
+        <button
+          onClick={onSettings}
+          className="
+            w-full flex items-center gap-3 px-3 py-2
+            text-sm text-[var(--popover-foreground)]
+            hover:bg-[var(--muted)]
+            transition-colors
+          "
+          role="menuitem"
+        >
+          <svg 
+            className="w-4 h-4" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" 
+            />
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" 
+            />
+          </svg>
+          设置提示词
+          {conversation.systemPrompt && (
+            <span className="ml-auto text-xs text-[var(--primary)]">●</span>
+          )}
+        </button>
+
         {/* 置顶/取消置顶 */}
         <button
           onClick={onPin}
