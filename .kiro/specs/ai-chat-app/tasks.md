@@ -72,7 +72,7 @@
   - 确保存储服务可以正常读写文件
   - 如有问题请询问用户
 
-- [ ] 5. 基础 UI 组件
+- [x] 5. 基础 UI 组件
   - [x] 5.1 创建通用 UI 组件
     - 创建 `components/ui/Button.tsx`
     - 创建 `components/ui/Select.tsx`
@@ -87,7 +87,7 @@
     - _Requirements: 18.4_
 
 - [ ] 6. 侧边栏组件
-  - [ ] 6.1 实现侧边栏主组件
+  - [-] 6.1 实现侧边栏主组件
     - 创建 `components/sidebar/Sidebar.tsx`
     - 实现新建对话按钮
     - 实现对话列表容器

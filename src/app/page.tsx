@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import Sidebar from '@/components/sidebar/Sidebar';
+import { useChatStore } from '@/store';
 
 /**
  * 主页面组件
@@ -10,6 +12,25 @@ import { useState } from 'react';
 export default function Home() {
   // 侧边栏折叠状态（移动端）
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  
+  // 从 store 获取当前对话
+  const getCurrentConversation = useChatStore((state) => state.getCurrentConversation);
+  const currentConversation = getCurrentConversation();
+
+  /**
+   * 关闭侧边栏
+   */
+  const handleCloseSidebar = useCallback(() => {
+    setSidebarOpen(false);
+  }, []);
+
+  /**
+   * 打开设置面板（暂时只是 console.log，后续会实现）
+   */
+  const handleOpenSettings = useCallback(() => {
+    console.log('打开设置面板');
+    // TODO: 实现设置面板
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden">
@@ -17,123 +38,17 @@ export default function Home() {
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-20 bg-black/50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
+          onClick={handleCloseSidebar}
           aria-hidden="true"
         />
       )}
 
-      {/* 侧边栏 */}
-      <aside
-        className={`
-          fixed inset-y-0 left-0 z-30
-          w-72 
-          transform transition-transform duration-300 ease-in-out
-          lg:relative lg:translate-x-0
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          bg-white dark:bg-gray-800
-          border-r border-gray-200 dark:border-gray-700
-          flex flex-col
-        `}
-      >
-        {/* 侧边栏头部 */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
-          <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent">
-            AI Chat
-          </h1>
-          {/* 移动端关闭按钮 */}
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            aria-label="关闭侧边栏"
-          >
-            <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-
-        {/* 新建对话按钮 */}
-        <div className="p-4">
-          <button
-            className="
-              w-full flex items-center justify-center gap-2
-              px-4 py-3 rounded-lg
-              bg-gradient-to-r from-purple-600 to-blue-500
-              text-white font-medium
-              hover:from-purple-700 hover:to-blue-600
-              transition-all duration-200
-              shadow-md hover:shadow-lg
-            "
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-            新建对话
-          </button>
-        </div>
-
-        {/* 搜索栏占位 */}
-        <div className="px-4 pb-4">
-          <div className="relative">
-            <input
-              type="text"
-              placeholder="搜索对话..."
-              className="
-                w-full px-4 py-2 pl-10
-                rounded-lg
-                bg-gray-100 dark:bg-gray-700
-                border border-transparent
-                focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20
-                text-gray-900 dark:text-gray-100
-                placeholder-gray-500 dark:placeholder-gray-400
-                transition-all duration-200
-              "
-            />
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </div>
-        </div>
-
-        {/* 对话列表占位 */}
-        <div className="flex-1 overflow-y-auto px-2">
-          <div className="space-y-1">
-            {/* 占位对话项 - 后续会被 ConversationList 组件替换 */}
-            <div className="p-3 rounded-lg bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800">
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                欢迎使用 AI Chat
-              </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                点击新建对话开始聊天
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* 侧边栏底部 - 设置按钮 */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-          <button
-            className="
-              w-full flex items-center gap-3
-              px-4 py-2 rounded-lg
-              text-gray-600 dark:text-gray-300
-              hover:bg-gray-100 dark:hover:bg-gray-700
-              transition-colors duration-200
-            "
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-            设置
-          </button>
-        </div>
-      </aside>
+      {/* 侧边栏组件 */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={handleCloseSidebar}
+        onOpenSettings={handleOpenSettings}
+      />
 
       {/* 主内容区 */}
       <main className="flex-1 flex flex-col min-w-0 bg-gray-50 dark:bg-gray-900">
@@ -152,7 +67,7 @@ export default function Home() {
 
           {/* 当前对话标题 */}
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 truncate flex-1 lg:ml-0 ml-2">
-            新对话
+            {currentConversation?.title || '新对话'}
           </h2>
 
           {/* 模型选择器占位 */}
