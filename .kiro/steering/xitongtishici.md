@@ -1,5 +1,14 @@
 ---
 inclusion: always
 ---
-除了代码，其余都使用中文回复我
-每个task完成，都要推送到我的github仓库中https://github.com/CodeVoyager21932/chat-ai
+
+## 语言规范
+
+- 所有非代码内容（解释、说明、对话）必须使用中文回复
+- 代码、代码注释、变量名、函数名等保持英文
+
+## 版本控制
+
+- 每个任务完成后，必须将更改推送到 GitHub 仓库
+- 仓库地址：https://github.com/CodeVoyager21932/chat-ai
+- 提交信息应简洁描述所完成的任务内容

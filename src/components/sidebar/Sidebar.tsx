@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useChatStore, useSortedConversations } from '@/store';
-import type { Conversation } from '@/types';
+import { useChatStore } from '@/store';
+import ConversationList from './ConversationList';
 
 /**
  * 侧边栏组件 Props
@@ -39,8 +39,6 @@ const Sidebar: React.FC<SidebarProps> = ({
   const [searchQuery, setSearchQuery] = useState('');
   
   // 从 store 获取状态和方法
-  const conversations = useSortedConversations();
-  const currentConversationId = useChatStore((state) => state.currentConversationId);
   const createConversation = useChatStore((state) => state.createConversation);
   const setCurrentConversation = useChatStore((state) => state.setCurrentConversation);
 
@@ -64,55 +62,11 @@ const Sidebar: React.FC<SidebarProps> = ({
   }, []);
 
   /**
-   * 过滤对话列表
-   * 根据搜索关键词过滤，只显示非归档的对话
-   * @requirements 5.1, 5.7
+   * 处理对话点击（移动端关闭侧边栏）
    */
-  const filteredConversations = conversations.filter((conv) => {
-    // 过滤归档的对话
-    if (conv.isArchived) return false;
-    // 如果有搜索关键词，按标题过滤
-    if (searchQuery.trim()) {
-      return conv.title.toLowerCase().includes(searchQuery.toLowerCase());
-    }
-    return true;
-  });
-
-  /**
-   * 处理对话点击
-   * @requirements 5.3
-   */
-  const handleConversationClick = useCallback((conversationId: string) => {
-    setCurrentConversation(conversationId);
-    // 移动端关闭侧边栏
+  const handleConversationClick = useCallback(() => {
     onClose?.();
-  }, [setCurrentConversation, onClose]);
-
-  /**
-   * 格式化时间显示
-   */
-  const formatTime = (date: Date): string => {
-    const now = new Date();
-    const messageDate = new Date(date);
-    const diffMs = now.getTime() - messageDate.getTime();
-    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) {
-      return messageDate.toLocaleTimeString('zh-CN', { 
-        hour: '2-digit', 
-        minute: '2-digit' 
-      });
-    } else if (diffDays === 1) {
-      return '昨天';
-    } else if (diffDays < 7) {
-      return `${diffDays}天前`;
-    } else {
-      return messageDate.toLocaleDateString('zh-CN', { 
-        month: 'short', 
-        day: 'numeric' 
-      });
-    }
-  };
+  }, [onClose]);
 
   return (
     <aside
@@ -251,47 +205,10 @@ const Sidebar: React.FC<SidebarProps> = ({
 
       {/* ============ 对话列表容器 ============ */}
       {/* @requirements 5.1 */}
-      <div className="flex-1 overflow-y-auto px-2" role="list" aria-label="对话列表">
-        <div className="space-y-1">
-          {filteredConversations.length === 0 ? (
-            // 空状态
-            <div className="p-4 text-center">
-              <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-[var(--muted)] flex items-center justify-center">
-                <svg 
-                  className="w-6 h-6 text-[var(--muted-foreground)]" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    strokeWidth={2} 
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" 
-                  />
-                </svg>
-              </div>
-              <p className="text-sm text-[var(--muted-foreground)]">
-                {searchQuery ? '没有找到匹配的对话' : '暂无对话'}
-              </p>
-              <p className="text-xs text-[var(--muted-foreground)] mt-1">
-                {searchQuery ? '尝试其他关键词' : '点击上方按钮开始新对话'}
-              </p>
-            </div>
-          ) : (
-            // 对话列表
-            filteredConversations.map((conversation) => (
-              <ConversationItem
-                key={conversation.id}
-                conversation={conversation}
-                isActive={conversation.id === currentConversationId}
-                onClick={() => handleConversationClick(conversation.id)}
-                formatTime={formatTime}
-              />
-            ))
-          )}
-        </div>
-      </div>
+      <ConversationList
+        searchQuery={searchQuery}
+        onConversationClick={handleConversationClick}
+      />
 
       {/* ============ 侧边栏底部 - 设置按钮 ============ */}
       <div className="p-4 border-t border-[var(--border)]">
@@ -330,84 +247,6 @@ const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
     </aside>
-  );
-};
-
-/**
- * 对话项组件 Props
- */
-interface ConversationItemProps {
-  conversation: Conversation;
-  isActive: boolean;
-  onClick: () => void;
-  formatTime: (date: Date) => string;
-}
-
-/**
- * 对话项组件
- * 显示单个对话的标题、时间和状态标记
- */
-const ConversationItem: React.FC<ConversationItemProps> = ({
-  conversation,
-  isActive,
-  onClick,
-  formatTime,
-}) => {
-  return (
-    <button
-      onClick={onClick}
-      className={`
-        w-full p-3 rounded-lg text-left
-        transition-all duration-200
-        focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ring)]
-        ${isActive 
-          ? 'bg-[var(--primary)] text-[var(--primary-foreground)]' 
-          : 'hover:bg-[var(--muted)] text-[var(--sidebar-foreground)]'
-        }
-      `}
-      role="listitem"
-      aria-current={isActive ? 'true' : undefined}
-    >
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5">
-            {/* 置顶标记 */}
-            {conversation.isPinned && (
-              <svg 
-                className={`w-3 h-3 flex-shrink-0 ${isActive ? 'text-white/80' : 'text-[var(--primary)]'}`}
-                fill="currentColor" 
-                viewBox="0 0 20 20"
-                aria-label="已置顶"
-              >
-                <path d="M10 2a1 1 0 011 1v1.323l3.954 1.582 1.599-.8a1 1 0 01.894 1.79l-1.233.616 1.738 5.42a1 1 0 01-.285 1.05A3.989 3.989 0 0115 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.715-5.349L11 6.477V16h2a1 1 0 110 2H7a1 1 0 110-2h2V6.477L6.237 7.582l1.715 5.349a1 1 0 01-.285 1.05A3.989 3.989 0 015 15a3.989 3.989 0 01-2.667-1.019 1 1 0 01-.285-1.05l1.738-5.42-1.233-.617a1 1 0 01.894-1.788l1.599.799L9 4.323V3a1 1 0 011-1z" />
-              </svg>
-            )}
-            {/* 对话标题 */}
-            <p className="text-sm font-medium truncate">
-              {conversation.title}
-            </p>
-          </div>
-          {/* 最后更新时间 */}
-          <p className={`text-xs mt-1 ${isActive ? 'text-white/70' : 'text-[var(--muted-foreground)]'}`}>
-            {formatTime(conversation.updatedAt)}
-          </p>
-        </div>
-        {/* 消息数量指示 */}
-        {conversation.messages.length > 0 && (
-          <span 
-            className={`
-              text-xs px-1.5 py-0.5 rounded-full flex-shrink-0
-              ${isActive 
-                ? 'bg-white/20 text-white' 
-                : 'bg-[var(--muted)] text-[var(--muted-foreground)]'
-              }
-            `}
-          >
-            {conversation.messages.length}
-          </span>
-        )}
-      </div>
-    </button>
   );
 };
 
