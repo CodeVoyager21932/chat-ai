@@ -24,7 +24,7 @@
     - 定义 Message、Conversation、Attachment、AIModel、ThemeConfig 等类型
     - _Requirements: 1.1, 2.1, 5.1_
 
-- [ ] 2. 状态管理和存储服务
+- [x] 2. 状态管理和存储服务
   - [x] 2.1 实现 Zustand 状态管理
     - 创建 `store/index.ts`
     - 实现对话状态管理（conversations, currentConversationId）
@@ -32,7 +32,7 @@
     - 实现所有状态操作方法
     - _Requirements: 5.1, 5.4, 5.5, 5.6, 13.1, 14.1, 15.1_
   
-  - [-] 2.2 实现存储服务
+  - [x] 2.2 实现存储服务
     - 创建 `lib/storage.ts`
     - 实现 readConversations、writeConversation、deleteConversation 函数
     - 实现目录自动创建
@@ -44,7 +44,7 @@
     - **Validates: Requirements 6.1, 6.2, 6.3, 6.4**
 
 - [ ] 3. API 路由实现
-  - [ ] 3.1 实现 AI 聊天 API 路由
+  - [x] 3.1 实现 AI 聊天 API 路由
     - 创建 `app/api/chat/route.ts`
     - 实现多提供商路由逻辑（OpenAI、Anthropic、Google）
     - 实现流式响应
