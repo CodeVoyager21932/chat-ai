@@ -1,13 +1,26 @@
 // lib/export.ts
-// 导出功能工具函数
-// Requirements: 16.1, 16.2, 16.4
+// Export utility functions for conversation export
+// Requirements: 16.1, 16.2, 16.3, 16.4
 
 import type { Conversation, ExportFormat } from '@/types';
 
 /**
- * 格式化日期为 YYYY-MM-DD 格式
- * @param date 日期对象或日期字符串
- * @returns 格式化的日期字符串
+ * Format date as YYYYMMDD for filename
+ * @param date Date object or date string
+ * @returns Formatted date string (YYYYMMDD)
+ */
+export function formatDateForFilename(date: Date | string): string {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
+/**
+ * Format date as YYYY-MM-DD for display
+ * @param date Date object or date string
+ * @returns Formatted date string
  */
 export function formatDate(date: Date | string): string {
   const d = new Date(date);
@@ -18,9 +31,9 @@ export function formatDate(date: Date | string): string {
 }
 
 /**
- * 格式化时间为 HH:MM:SS 格式
- * @param date 日期对象或日期字符串
- * @returns 格式化的时间字符串
+ * Format time as HH:MM:SS for display
+ * @param date Date object or date string
+ * @returns Formatted time string
  */
 export function formatTime(date: Date | string): string {
   const d = new Date(date);
@@ -31,76 +44,77 @@ export function formatTime(date: Date | string): string {
 }
 
 /**
- * 清理文件名，移除不安全字符
- * @param title 原始标题
- * @returns 安全的文件名
+ * Sanitize filename by removing unsafe characters
+ * @param title Original title
+ * @returns Safe filename
  */
 export function sanitizeFilename(title: string): string {
-  // 移除或替换不安全的文件名字符
+  // Remove or replace unsafe filename characters
   return title
-    .replace(/[<>:"/\\|?*]/g, '_')  // 替换 Windows 不允许的字符
-    .replace(/\s+/g, '_')           // 替换空格为下划线
-    .replace(/_+/g, '_')            // 合并多个下划线
-    .replace(/^_|_$/g, '')          // 移除首尾下划线
-    .substring(0, 50);              // 限制长度
+    .replace(/[<>:"/\\|?*]/g, '_')  // Replace Windows disallowed characters
+    .replace(/\s+/g, '_')           // Replace spaces with underscores
+    .replace(/_+/g, '_')            // Merge multiple underscores
+    .replace(/^_|_$/g, '')          // Remove leading/trailing underscores
+    .substring(0, 50);              // Limit length
 }
 
 /**
- * 生成导出文件名
+ * Generate export filename
  * Requirement 16.4: THE exported file SHALL be named with the conversation title and export date
+ * Format: {title}_{YYYYMMDD}.{ext}
  * 
- * @param title 对话标题
- * @param format 导出格式
- * @returns 文件名
+ * @param title Conversation title
+ * @param format Export format
+ * @returns Filename
  */
 export function generateFilename(title: string, format: ExportFormat): string {
   const sanitizedTitle = sanitizeFilename(title) || 'conversation';
-  const date = formatDate(new Date());
+  const date = formatDateForFilename(new Date());
   const extension = format === 'markdown' ? 'md' : format;
   return `${sanitizedTitle}_${date}.${extension}`;
 }
 
 /**
- * 将对话导出为 Markdown 格式
+ * Export conversation to Markdown format
  * Requirement 16.1: WHEN a user exports as Markdown, THE Chat_Application SHALL generate 
  * a .md file with formatted conversation content
  * 
- * @param conversation 对话对象
- * @returns Markdown 格式的字符串
+ * @param conversation Conversation object
+ * @returns Markdown formatted string
  */
 export function exportToMarkdown(conversation: Conversation): string {
   const lines: string[] = [];
   
-  // 标题
+  // Title
   lines.push(`# ${conversation.title}`);
   lines.push('');
   
-  // 元数据
-  lines.push('## 对话信息');
+  // Metadata
+  lines.push('## Conversation Info');
   lines.push('');
-  lines.push(`- **模型**: ${conversation.model}`);
-  lines.push(`- **创建时间**: ${formatDate(conversation.createdAt)} ${formatTime(conversation.createdAt)}`);
-  lines.push(`- **更新时间**: ${formatDate(conversation.updatedAt)} ${formatTime(conversation.updatedAt)}`);
+  lines.push(`- **Model**: ${conversation.model}`);
+  lines.push(`- **Created**: ${formatDate(conversation.createdAt)} ${formatTime(conversation.createdAt)}`);
+  lines.push(`- **Updated**: ${formatDate(conversation.updatedAt)} ${formatTime(conversation.updatedAt)}`);
   
   if (conversation.systemPrompt) {
-    lines.push(`- **系统提示词**: ${conversation.systemPrompt}`);
+    lines.push(`- **System Prompt**: ${conversation.systemPrompt}`);
   }
   
   lines.push('');
   lines.push('---');
   lines.push('');
   
-  // 对话内容
-  lines.push('## 对话内容');
+  // Conversation content
+  lines.push('## Messages');
   lines.push('');
   
   for (const message of conversation.messages) {
-    // 跳过系统消息
+    // Skip system messages
     if (message.role === 'system') {
       continue;
     }
     
-    const roleLabel = message.role === 'user' ? '👤 **用户**' : '🤖 **助手**';
+    const roleLabel = message.role === 'user' ? '👤 **User**' : '🤖 **Assistant**';
     const timestamp = formatTime(message.createdAt);
     
     lines.push(`### ${roleLabel} (${timestamp})`);
@@ -108,9 +122,9 @@ export function exportToMarkdown(conversation: Conversation): string {
     lines.push(message.content);
     lines.push('');
     
-    // 如果有附件，列出附件信息
+    // List attachments if any
     if (message.attachments && message.attachments.length > 0) {
-      lines.push('**附件:**');
+      lines.push('**Attachments:**');
       for (const attachment of message.attachments) {
         const typeLabel = attachment.type === 'image' ? '🖼️' : '📄';
         lines.push(`- ${typeLabel} ${attachment.name}`);
@@ -119,24 +133,24 @@ export function exportToMarkdown(conversation: Conversation): string {
     }
   }
   
-  // 页脚
+  // Footer
   lines.push('---');
   lines.push('');
-  lines.push(`*导出时间: ${formatDate(new Date())} ${formatTime(new Date())}*`);
+  lines.push(`*Exported at: ${formatDate(new Date())} ${formatTime(new Date())}*`);
   
   return lines.join('\n');
 }
 
 /**
- * 将对话导出为 JSON 格式
+ * Export conversation to JSON format
  * Requirement 16.2: WHEN a user exports as JSON, THE Chat_Application SHALL generate 
  * a .json file with complete conversation data
  * 
- * @param conversation 对话对象
- * @returns JSON 格式的字符串
+ * @param conversation Conversation object
+ * @returns JSON formatted string
  */
 export function exportToJson(conversation: Conversation): string {
-  // 创建导出数据，包含完整的对话信息
+  // Create export data with complete conversation info
   const exportData = {
     ...conversation,
     exportedAt: new Date().toISOString(),
@@ -144,4 +158,298 @@ export function exportToJson(conversation: Conversation): string {
   };
   
   return JSON.stringify(exportData, null, 2);
+}
+
+/**
+ * Generate HTML content for PDF export
+ * Creates a styled HTML representation of the conversation
+ * 
+ * @param conversation Conversation object
+ * @returns HTML string
+ */
+export function generatePdfHtml(conversation: Conversation): string {
+  const styles = `
+    <style>
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { 
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        line-height: 1.6;
+        color: #333;
+        padding: 40px;
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      h1 { 
+        font-size: 24px; 
+        margin-bottom: 20px;
+        color: #1a1a1a;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 10px;
+      }
+      .meta { 
+        background: #f5f5f5;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 30px;
+        font-size: 14px;
+      }
+      .meta p { margin: 5px 0; }
+      .meta strong { color: #555; }
+      .messages { margin-top: 20px; }
+      .message { 
+        margin-bottom: 20px;
+        padding: 15px;
+        border-radius: 8px;
+      }
+      .message.user { 
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        margin-left: 50px;
+      }
+      .message.assistant { 
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        margin-right: 50px;
+      }
+      .message-header { 
+        font-weight: bold;
+        margin-bottom: 10px;
+        font-size: 14px;
+        opacity: 0.9;
+      }
+      .message-content { 
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .attachments {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(0,0,0,0.1);
+        font-size: 13px;
+      }
+      .footer { 
+        margin-top: 40px;
+        padding-top: 20px;
+        border-top: 1px solid #ddd;
+        font-size: 12px;
+        color: #666;
+        text-align: center;
+      }
+      pre {
+        background: #2d2d2d;
+        color: #f8f8f2;
+        padding: 12px;
+        border-radius: 6px;
+        overflow-x: auto;
+        font-size: 13px;
+        margin: 10px 0;
+      }
+      code {
+        background: rgba(0,0,0,0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 13px;
+      }
+    </style>
+  `;
+
+  let messagesHtml = '';
+  for (const message of conversation.messages) {
+    if (message.role === 'system') continue;
+    
+    const roleLabel = message.role === 'user' ? '👤 User' : '🤖 Assistant';
+    const timestamp = formatTime(message.createdAt);
+    
+    let attachmentsHtml = '';
+    if (message.attachments && message.attachments.length > 0) {
+      const attachmentsList = message.attachments
+        .map(a => `${a.type === 'image' ? '🖼️' : '📄'} ${a.name}`)
+        .join('<br>');
+      attachmentsHtml = `<div class="attachments"><strong>Attachments:</strong><br>${attachmentsList}</div>`;
+    }
+    
+    // Escape HTML in content but preserve line breaks
+    const escapedContent = escapeHtml(message.content);
+    
+    messagesHtml += `
+      <div class="message ${message.role}">
+        <div class="message-header">${roleLabel} · ${timestamp}</div>
+        <div class="message-content">${escapedContent}</div>
+        ${attachmentsHtml}
+      </div>
+    `;
+  }
+
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>${escapeHtml(conversation.title)}</title>
+      ${styles}
+    </head>
+    <body>
+      <h1>${escapeHtml(conversation.title)}</h1>
+      <div class="meta">
+        <p><strong>Model:</strong> ${escapeHtml(conversation.model)}</p>
+        <p><strong>Created:</strong> ${formatDate(conversation.createdAt)} ${formatTime(conversation.createdAt)}</p>
+        <p><strong>Updated:</strong> ${formatDate(conversation.updatedAt)} ${formatTime(conversation.updatedAt)}</p>
+        ${conversation.systemPrompt ? `<p><strong>System Prompt:</strong> ${escapeHtml(conversation.systemPrompt)}</p>` : ''}
+      </div>
+      <div class="messages">
+        ${messagesHtml}
+      </div>
+      <div class="footer">
+        Exported at: ${formatDate(new Date())} ${formatTime(new Date())}
+      </div>
+    </body>
+    </html>
+  `;
+}
+
+/**
+ * Escape HTML special characters
+ * @param text Text to escape
+ * @returns Escaped text
+ */
+function escapeHtml(text: string): string {
+  const htmlEntities: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+  return text.replace(/[&<>"']/g, char => htmlEntities[char] || char);
+}
+
+/**
+ * Export conversation to PDF format (client-side only)
+ * Requirement 16.3: WHEN a user exports as PDF, THE Chat_Application SHALL generate 
+ * a .pdf file with styled conversation content
+ * 
+ * This function must be called from the client side as it uses browser APIs
+ * 
+ * @param conversation Conversation object
+ * @returns Promise that resolves when PDF is downloaded
+ */
+export async function exportToPdf(conversation: Conversation): Promise<void> {
+  // Dynamic import to avoid SSR issues
+  const [{ default: jsPDF }, { default: html2canvas }] = await Promise.all([
+    import('jspdf'),
+    import('html2canvas'),
+  ]);
+
+  // Create a temporary container for rendering
+  const container = document.createElement('div');
+  container.innerHTML = generatePdfHtml(conversation);
+  container.style.position = 'absolute';
+  container.style.left = '-9999px';
+  container.style.top = '0';
+  container.style.width = '800px';
+  container.style.background = 'white';
+  document.body.appendChild(container);
+
+  try {
+    // Render HTML to canvas
+    const canvas = await html2canvas(container, {
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+    } as Parameters<typeof html2canvas>[1]);
+
+    // Calculate PDF dimensions
+    const imgWidth = 210; // A4 width in mm
+    const pageHeight = 297; // A4 height in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    // Create PDF
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    let heightLeft = imgHeight;
+    let position = 0;
+
+    // Add first page
+    pdf.addImage(
+      canvas.toDataURL('image/png'),
+      'PNG',
+      0,
+      position,
+      imgWidth,
+      imgHeight
+    );
+    heightLeft -= pageHeight;
+
+    // Add additional pages if needed
+    while (heightLeft > 0) {
+      position = heightLeft - imgHeight;
+      pdf.addPage();
+      pdf.addImage(
+        canvas.toDataURL('image/png'),
+        'PNG',
+        0,
+        position,
+        imgWidth,
+        imgHeight
+      );
+      heightLeft -= pageHeight;
+    }
+
+    // Generate filename and save
+    const filename = generateFilename(conversation.title, 'pdf');
+    pdf.save(filename);
+  } finally {
+    // Clean up
+    document.body.removeChild(container);
+  }
+}
+
+/**
+ * Trigger file download in browser
+ * @param content File content
+ * @param filename Filename
+ * @param mimeType MIME type
+ */
+export function downloadFile(content: string, filename: string, mimeType: string): void {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+/**
+ * Unified export interface for all formats
+ * Handles Markdown, JSON, and PDF exports
+ * 
+ * @param conversation Conversation to export
+ * @param format Export format
+ */
+export async function exportConversation(
+  conversation: Conversation,
+  format: ExportFormat
+): Promise<void> {
+  const filename = generateFilename(conversation.title, format);
+
+  switch (format) {
+    case 'markdown': {
+      const content = exportToMarkdown(conversation);
+      downloadFile(content, filename, 'text/markdown; charset=utf-8');
+      break;
+    }
+    case 'json': {
+      const content = exportToJson(conversation);
+      downloadFile(content, filename, 'application/json; charset=utf-8');
+      break;
+    }
+    case 'pdf': {
+      await exportToPdf(conversation);
+      break;
+    }
+    default:
+      throw new Error(`Unsupported export format: ${format}`);
+  }
 }
