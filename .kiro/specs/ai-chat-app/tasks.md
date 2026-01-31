@@ -100,7 +100,7 @@
     - 实现右键菜单（删除、归档、置顶）
     - _Requirements: 5.1, 5.3, 5.4, 5.5, 5.6_
   
-  - [-] 6.3 实现搜索栏组件
+  - [x] 6.3 实现搜索栏组件
     - 创建 `components/sidebar/SearchBar.tsx`
     - 实现搜索输入和过滤逻辑
     - _Requirements: 5.7_
@@ -111,7 +111,7 @@
     - **Validates: Requirements 5.1, 5.6, 5.7**
 
 - [ ] 7. Markdown 和代码渲染
-  - [ ] 7.1 实现 Markdown 渲染组件
+  - [-] 7.1 实现 Markdown 渲染组件
     - 安装 react-markdown, remark-gfm, rehype-katex, katex
     - 创建 `components/markdown/MarkdownRenderer.tsx`
     - 配置 GFM 支持（表格、删除线、任务列表）
