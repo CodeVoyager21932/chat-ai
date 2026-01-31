@@ -43,7 +43,7 @@
     - 测试写入后读取返回等价对象
     - **Validates: Requirements 6.1, 6.2, 6.3, 6.4**
 
-- [ ] 3. API 路由实现
+- [x] 3. API 路由实现
   - [x] 3.1 实现 AI 聊天 API 路由
     - 创建 `app/api/chat/route.ts`
     - 实现多提供商路由逻辑（OpenAI、Anthropic、Google）
@@ -67,7 +67,7 @@
     - 实现 JSON 导出
     - _Requirements: 16.1, 16.2_
 
-- [ ] 4. Checkpoint - 确保后端 API 正常工作
+- [x] 4. Checkpoint - 确保后端 API 正常工作
   - 确保所有 API 路由可以正常调用
   - 确保存储服务可以正常读写文件
   - 如有问题请询问用户
