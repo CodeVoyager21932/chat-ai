@@ -3,6 +3,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 import type {
   Conversation,
   Message,
@@ -343,19 +344,11 @@ export const useSettings = () => useChatStore((state) => state.settings);
 export const useTheme = () => useChatStore((state) => state.settings.theme);
 
 /**
- * Get sorted conversations (pinned first, then by updatedAt)
+ * Get conversations array (use with useMemo in component for sorting)
+ * Returns the raw conversations array - sorting should be done in component with useMemo
  */
 export const useSortedConversations = () =>
-  useChatStore((state) => {
-    const conversations = [...state.conversations];
-    return conversations.sort((a, b) => {
-      // Pinned conversations first
-      if (a.isPinned && !b.isPinned) return -1;
-      if (!a.isPinned && b.isPinned) return 1;
-      // Then sort by updatedAt (newest first)
-      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
-    });
-  });
+  useChatStore((state) => state.conversations);
 
 /**
  * Get a specific conversation by ID

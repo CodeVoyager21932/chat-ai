@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { useChatStore, useSortedConversations } from '@/store';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { useChatStore } from '@/store';
 import type { Conversation } from '@/types';
 import ConversationSettings from '@/components/chat/ConversationSettings';
 
@@ -85,7 +85,7 @@ const ConversationList: React.FC<ConversationListProps> = ({
   const contextMenuRef = useRef<HTMLDivElement>(null);
 
   // 从 store 获取状态和方法
-  const conversations = useSortedConversations();
+  const rawConversations = useChatStore((state) => state.conversations);
   const currentConversationId = useChatStore((state) => state.currentConversationId);
   const setCurrentConversation = useChatStore((state) => state.setCurrentConversation);
   const deleteConversation = useChatStore((state) => state.deleteConversation);
@@ -93,28 +93,38 @@ const ConversationList: React.FC<ConversationListProps> = ({
   const archiveConversation = useChatStore((state) => state.archiveConversation);
 
   /**
+   * 排序后的对话列表 - 使用 useMemo 缓存
+   */
+  const conversations = useMemo(() => {
+    return [...rawConversations].sort((a, b) => {
+      if (a.isPinned && !b.isPinned) return -1;
+      if (!a.isPinned && b.isPinned) return 1;
+      return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+    });
+  }, [rawConversations]);
+
+  /**
    * 获取当前右键菜单对应的对话 - 使用 useMemo 避免重复计算
    */
-  const contextConversation = React.useMemo(() => {
+  const contextConversation = useMemo(() => {
     if (!contextMenu.conversationId) return undefined;
     return conversations.find(c => c.id === contextMenu.conversationId);
   }, [contextMenu.conversationId, conversations]);
 
   /**
-   * 过滤对话列表
+   * 过滤对话列表 - 使用 useMemo 缓存
    * @requirements 5.1, 5.7
    */
-  const filteredConversations = conversations.filter((conv) => {
-    // 根据 showArchived 过滤
-    if (!showArchived && conv.isArchived) return false;
-    if (showArchived && !conv.isArchived) return false;
-    
-    // 如果有搜索关键词，按标题过滤
-    if (searchQuery.trim()) {
-      return conv.title.toLowerCase().includes(searchQuery.toLowerCase());
-    }
-    return true;
-  });
+  const filteredConversations = useMemo(() => {
+    return conversations.filter((conv) => {
+      if (!showArchived && conv.isArchived) return false;
+      if (showArchived && !conv.isArchived) return false;
+      if (searchQuery.trim()) {
+        return conv.title.toLowerCase().includes(searchQuery.toLowerCase());
+      }
+      return true;
+    });
+  }, [conversations, showArchived, searchQuery]);
 
   /**
    * 处理对话点击

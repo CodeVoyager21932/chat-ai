@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useRef, useMemo } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import Sidebar from '@/components/sidebar/Sidebar';
 import ChatContainer from '@/components/chat/ChatContainer';
 import ConversationSettings from '@/components/chat/ConversationSettings';
@@ -12,43 +12,32 @@ import type { ExportFormat } from '@/types';
 
 /**
  * Main page component
- * Integrates all components: Sidebar, ChatContainer, SettingsPanel, ConversationSettings
- * Implements responsive layout with collapsible sidebar on mobile
- * Ensures proper component communication and state synchronization
- * 
- * @requirements All - Integration of all components
  */
 export default function Home() {
-  // Sidebar collapsed state (mobile)
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  
-  // Settings panel state
   const [settingsOpen, setSettingsOpen] = useState(false);
-  
-  // Conversation settings modal state
   const [conversationSettingsOpen, setConversationSettingsOpen] = useState(false);
-  
-  // Export dropdown state
   const [exportMenuOpen, setExportMenuOpen] = useState(false);
   const exportMenuRef = useRef<HTMLDivElement>(null);
   
-  // Get current conversation ID and find conversation
-  // Use separate selectors to minimize re-renders
+  // Get conversation data - only the fields we need
   const currentConversationId = useChatStore((state) => state.currentConversationId);
-  const getCurrentConversation = useChatStore((state) => state.getCurrentConversation);
+  const conversationTitle = useChatStore((state) => {
+    if (!state.currentConversationId) return '新对话';
+    const conv = state.conversations.find(c => c.id === state.currentConversationId);
+    return conv?.title || '新对话';
+  });
+  const hasMessages = useChatStore((state) => {
+    if (!state.currentConversationId) return false;
+    const conv = state.conversations.find(c => c.id === state.currentConversationId);
+    return (conv?.messages?.length || 0) > 0;
+  });
   
-  // Get current conversation using the store method
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const currentConversation = useMemo(() => {
-    return getCurrentConversation();
-  }, [currentConversationId]);
+  // Get full conversation only for export and settings modal
+  const getFullConversation = useChatStore((state) => state.getCurrentConversation);
   
-  // Initialize theme on app startup
-  // This ensures theme is applied correctly when the app loads
-  // @requirements 13.1, 13.2, 13.3, 13.4
+  // Initialize theme
   useTheme();
-  
-  // Theme is automatically applied by useTheme hook's useEffect
 
   // Close export menu when clicking outside
   useEffect(() => {
@@ -57,73 +46,52 @@ export default function Home() {
         setExportMenuOpen(false);
       }
     };
-    
     if (exportMenuOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
-    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [exportMenuOpen]);
 
-  /**
-   * Close sidebar handler
-   */
   const handleCloseSidebar = useCallback(() => {
     setSidebarOpen(false);
   }, []);
 
-  /**
-   * Open settings panel handler
-   * @requirements 11.1
-   */
   const handleOpenSettings = useCallback(() => {
     setSettingsOpen(true);
   }, []);
 
-  /**
-   * Close settings panel handler
-   */
   const handleCloseSettings = useCallback(() => {
     setSettingsOpen(false);
   }, []);
 
-  /**
-   * Open conversation settings handler
-   * @requirements 11.2
-   */
   const handleOpenConversationSettings = useCallback(() => {
-    if (currentConversation) {
+    if (currentConversationId) {
       setConversationSettingsOpen(true);
     }
-  }, [currentConversation]);
+  }, [currentConversationId]);
 
-  /**
-   * Close conversation settings handler
-   */
   const handleCloseConversationSettings = useCallback(() => {
     setConversationSettingsOpen(false);
   }, []);
 
-  /**
-   * Handle export conversation
-   * @requirements 16.1, 16.2, 16.3, 16.4
-   */
   const handleExport = useCallback(async (format: ExportFormat) => {
-    if (!currentConversation) return;
-    
+    const conversation = getFullConversation();
+    if (!conversation) return;
     try {
-      await exportConversation(currentConversation, format);
+      await exportConversation(conversation, format);
       setExportMenuOpen(false);
     } catch (error) {
       console.error('Export failed:', error);
     }
-  }, [currentConversation]);
+  }, [getFullConversation]);
+
+  // Get conversation for modal (only when needed)
+  const conversationForModal = conversationSettingsOpen ? getFullConversation() : null;
 
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--background)]">
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 z-20 bg-black/50 lg:hidden"
@@ -132,19 +100,14 @@ export default function Home() {
         />
       )}
 
-      {/* Sidebar component */}
-      {/* @requirements 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7 */}
       <Sidebar
         isOpen={sidebarOpen}
         onClose={handleCloseSidebar}
         onOpenSettings={handleOpenSettings}
       />
 
-      {/* Main content area */}
       <main className="flex-1 flex flex-col min-w-0 bg-[var(--background)]">
-        {/* Top navigation bar */}
         <header className="flex items-center justify-between px-4 py-3 bg-[var(--card)] border-b border-[var(--border)]">
-          {/* Mobile menu button */}
           <button
             onClick={() => setSidebarOpen(true)}
             className="lg:hidden p-2 rounded-lg hover:bg-[var(--muted)] transition-colors"
@@ -155,16 +118,12 @@ export default function Home() {
             </svg>
           </button>
 
-          {/* Current conversation title */}
           <h2 className="text-lg font-semibold text-[var(--foreground)] truncate flex-1 lg:ml-0 ml-2">
-            {currentConversation?.title || '新对话'}
+            {conversationTitle}
           </h2>
 
-          {/* Action buttons */}
           <div className="flex items-center gap-1">
-            {/* Conversation settings button */}
-            {/* @requirements 11.2 */}
-            {currentConversation && (
+            {currentConversationId && (
               <button
                 onClick={handleOpenConversationSettings}
                 className="p-2 rounded-lg hover:bg-[var(--muted)] transition-colors"
@@ -177,24 +136,19 @@ export default function Home() {
               </button>
             )}
 
-            {/* Export dropdown */}
-            {/* @requirements 16.1, 16.2, 16.3, 16.4 */}
-            {currentConversation && currentConversation.messages.length > 0 && (
+            {currentConversationId && hasMessages && (
               <div className="relative" ref={exportMenuRef}>
                 <button
                   onClick={() => setExportMenuOpen(!exportMenuOpen)}
                   className="p-2 rounded-lg hover:bg-[var(--muted)] transition-colors"
                   aria-label="导出对话"
                   title="导出对话"
-                  aria-expanded={exportMenuOpen}
-                  aria-haspopup="true"
                 >
                   <svg className="w-5 h-5 text-[var(--muted-foreground)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
                   </svg>
                 </button>
                 
-                {/* Export dropdown menu */}
                 {exportMenuOpen && (
                   <div className="absolute right-0 mt-2 w-48 bg-[var(--popover)] border border-[var(--border)] rounded-lg shadow-lg z-50 animate-fade-in">
                     <div className="py-1">
@@ -202,27 +156,18 @@ export default function Home() {
                         onClick={() => handleExport('markdown')}
                         className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[var(--popover-foreground)] hover:bg-[var(--muted)] transition-colors"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
                         导出为 Markdown
                       </button>
                       <button
                         onClick={() => handleExport('json')}
                         className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[var(--popover-foreground)] hover:bg-[var(--muted)] transition-colors"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
-                        </svg>
                         导出为 JSON
                       </button>
                       <button
                         onClick={() => handleExport('pdf')}
                         className="w-full flex items-center gap-3 px-4 py-2 text-sm text-[var(--popover-foreground)] hover:bg-[var(--muted)] transition-colors"
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                        </svg>
                         导出为 PDF
                       </button>
                     </div>
@@ -231,7 +176,6 @@ export default function Home() {
               </div>
             )}
 
-            {/* Settings button */}
             <button
               onClick={handleOpenSettings}
               className="p-2 rounded-lg hover:bg-[var(--muted)] transition-colors"
@@ -246,26 +190,20 @@ export default function Home() {
           </div>
         </header>
 
-        {/* Chat container - integrates MessageList and InputArea */}
-        {/* @requirements 3.1, 3.2, 3.3, 3.4 */}
         <ChatContainer
-          conversationId={currentConversation?.id}
+          conversationId={currentConversationId}
           className="flex-1"
         />
       </main>
 
-      {/* Settings panel modal */}
-      {/* @requirements 11.1, 13.1, 13.2, 14.1, 14.2, 15.1, 15.2 */}
       <SettingsPanel
         isOpen={settingsOpen}
         onClose={handleCloseSettings}
       />
 
-      {/* Conversation settings modal */}
-      {/* @requirements 11.2, 11.4 */}
-      {currentConversation && (
+      {conversationForModal && (
         <ConversationSettings
-          conversation={currentConversation}
+          conversation={conversationForModal}
           isOpen={conversationSettingsOpen}
           onClose={handleCloseConversationSettings}
         />

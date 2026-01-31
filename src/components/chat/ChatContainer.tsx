@@ -33,33 +33,62 @@ async function generateConversationTitle(message: string): Promise<string> {
   }
 }
 
+// Empty array constant to avoid creating new references
+const EMPTY_MESSAGES: Message[] = [];
+
 const ChatContainer: React.FC<ChatContainerProps> = (props) => {
   const { conversationId, className = '' } = props;
   
-  // Use proper selectors to avoid infinite loops
+  // Use proper selectors - get primitive values separately to avoid new object creation
   const updateConversation = useChatStore((state) => state.updateConversation);
   const addMessage = useChatStore((state) => state.addMessage);
-  const settings = useChatStore((state) => state.settings);
+  const globalSystemPrompt = useChatStore((state) => state.settings.globalSystemPrompt);
   
-  // Get current conversation with proper null handling
-  const currentConversation = useChatStore((state) => {
+  // Get individual primitive values instead of creating new objects
+  const convId = useChatStore((state) => {
     if (!conversationId) return null;
-    return state.conversations.find(c => c.id === conversationId) || null;
+    const conv = state.conversations.find(c => c.id === conversationId);
+    return conv?.id || null;
+  });
+  const convTitle = useChatStore((state) => {
+    if (!conversationId) return null;
+    const conv = state.conversations.find(c => c.id === conversationId);
+    return conv?.title || null;
+  });
+  const convModel = useChatStore((state) => {
+    if (!conversationId) return 'gpt-4o';
+    const conv = state.conversations.find(c => c.id === conversationId);
+    return conv?.model || 'gpt-4o';
+  });
+  const convSystemPrompt = useChatStore((state) => {
+    if (!conversationId) return null;
+    const conv = state.conversations.find(c => c.id === conversationId);
+    return conv?.systemPrompt || null;
   });
   
-  const model = currentConversation?.model || 'gpt-4o';
-  const systemPrompt = currentConversation?.systemPrompt || settings.globalSystemPrompt;
+  // Get messages - return stable empty array reference when no messages
+  const conversationMessages = useChatStore((state) => {
+    if (!conversationId) return EMPTY_MESSAGES;
+    const conv = state.conversations.find(c => c.id === conversationId);
+    return conv?.messages || EMPTY_MESSAGES;
+  });
+  
+  const model = convModel;
+  const systemPrompt = convSystemPrompt || globalSystemPrompt;
   const savedMessageIds = useRef<Set<string>>(new Set());
   const prevConversationId = useRef<string | null>(null);
   const titleGeneratedRef = useRef<Set<string>>(new Set());
   const firstUserMessageRef = useRef<string | null>(null);
 
+  // Memoize the body object to prevent useChat from re-initializing
+  const chatBody = useMemo(() => ({ model, systemPrompt }), [model, systemPrompt]);
+
   const chatHook = useChat({
     api: '/api/chat',
     id: conversationId || undefined,
-    body: { model, systemPrompt },
+    body: chatBody,
     onFinish: async (message) => {
-      if (currentConversation && !savedMessageIds.current.has(message.id)) {
+      if (convId && !savedMessageIds.current.has(message.id)) {
         savedMessageIds.current.add(message.id);
         const assistantMessage: Message = {
           id: message.id,
@@ -67,9 +96,8 @@ const ChatContainer: React.FC<ChatContainerProps> = (props) => {
           content: message.content,
           createdAt: new Date(),
         };
-        addMessage(currentConversation.id, assistantMessage);
-        const convId = currentConversation.id;
-        const isNewConversation = currentConversation.title === '新对话';
+        addMessage(convId, assistantMessage);
+        const isNewConversation = convTitle === '新对话';
         const hasNotGeneratedTitle = !titleGeneratedRef.current.has(convId);
         const hasFirstMessage = firstUserMessageRef.current;
         if (isNewConversation && hasNotGeneratedTitle && hasFirstMessage) {
@@ -96,29 +124,29 @@ const ChatContainer: React.FC<ChatContainerProps> = (props) => {
   const isLoading = status === 'streaming' || status === 'submitted';
 
   useEffect(() => {
-    if (prevConversationId.current === currentConversation?.id) return;
-    prevConversationId.current = currentConversation?.id || null;
+    if (prevConversationId.current === convId) return;
+    prevConversationId.current = convId;
     savedMessageIds.current.clear();
     firstUserMessageRef.current = null;
-    if (currentConversation?.messages?.length) {
-      const formatted = currentConversation.messages.map((msg) => ({
+    if (conversationMessages.length > 0) {
+      const formatted = conversationMessages.map((msg) => ({
         id: msg.id,
         role: msg.role as 'user' | 'assistant',
         content: msg.content,
       }));
       setMessages(formatted as Parameters<typeof setMessages>[0]);
-      currentConversation.messages.forEach((msg) => {
+      conversationMessages.forEach((msg) => {
         if (msg.role === 'assistant') savedMessageIds.current.add(msg.id);
       });
     } else {
       setMessages([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentConversation?.id, currentConversation?.messages?.length, setMessages]);
+  }, [convId, setMessages]);
 
   const handleSend = useCallback(async (content: string, attachments: Attachment[]) => {
     if (!content.trim() && attachments.length === 0) return;
-    if (!currentConversation) return;
+    if (!convId) return;
     const userMessage: Message = {
       id: generateMessageId(),
       role: 'user',
@@ -126,18 +154,18 @@ const ChatContainer: React.FC<ChatContainerProps> = (props) => {
       attachments: attachments.length > 0 ? attachments : undefined,
       createdAt: new Date(),
     };
-    addMessage(currentConversation.id, userMessage);
-    if (currentConversation.title === '新对话' && !firstUserMessageRef.current) {
+    addMessage(convId, userMessage);
+    if (convTitle === '新对话' && !firstUserMessageRef.current) {
       firstUserMessageRef.current = content;
     }
     await append({ role: 'user', content }, {
       body: { model, systemPrompt, attachments: attachments.length > 0 ? attachments : undefined },
     });
-  }, [currentConversation, model, systemPrompt, addMessage, append]);
+  }, [convId, convTitle, model, systemPrompt, addMessage, append]);
 
   const handleModelChange = useCallback((newModel: string) => {
-    if (currentConversation) updateConversation(currentConversation.id, { model: newModel });
-  }, [currentConversation, updateConversation]);
+    if (convId) updateConversation(convId, { model: newModel });
+  }, [convId, updateConversation]);
 
   const handleCopy = useCallback(async (content: string) => {
     try {
@@ -210,9 +238,9 @@ const ChatContainer: React.FC<ChatContainerProps> = (props) => {
         model={model}
         onModelChange={handleModelChange}
         isLoading={isLoading}
-        disabled={!currentConversation}
+        disabled={!convId}
         placeholder={
-          currentConversation
+          convId
             ? '输入消息... (Enter 发送, Shift+Enter 换行)'
             : '请先创建或选择一个对话'
         }
