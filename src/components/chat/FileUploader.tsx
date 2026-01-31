@@ -235,7 +235,8 @@ const FileUploader: React.FC<FileUploaderProps> = ({
       if (!items) return;
 
       const imageFiles: File[] = [];
-      for (const item of items) {
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
         if (item.type.startsWith('image/')) {
           const file = item.getAsFile();
           if (file) {
