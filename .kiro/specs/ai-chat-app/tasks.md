@@ -87,7 +87,7 @@
     - _Requirements: 18.4_
 
 - [ ] 6. 侧边栏组件
-  - [-] 6.1 实现侧边栏主组件
+  - [x] 6.1 实现侧边栏主组件
     - 创建 `components/sidebar/Sidebar.tsx`
     - 实现新建对话按钮
     - 实现对话列表容器
